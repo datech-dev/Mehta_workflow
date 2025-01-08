@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Task</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <h1>Create Task</h1>
+    <form id="createTaskForm" method="POST">
+        <label for="taskName">Task Name:</label>
+        <input type="text" id="taskName" name="name" required>
+        
+        <label for="taskDescription">Description:</label>
+        <textarea id="taskDescription" name="description" required></textarea>
+        
+        <label for="deadline">Deadline:</label>
+        <input type="datetime-local" id="deadline" name="deadline" required>
+        
+        <label for="assignedTo">Assign to:</label>
+        <select id="assignedTo" name="assigned_to" required>
+            <option value="">Select a User</option>
+            {% for user in users %}
+                {% if user['role'] == 'Employee' %}  <!-- You can filter users based on roles if needed -->
+                    <option value="{{ user['username'] }}">{{ user['username'] }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+        
+        <button type="submit">Create Task</button>
+    </form>
+    
+    
+
+    <script>
+        function createTask() {
+            var form = document.getElementById('createTaskForm');
+            var formData = new FormData(form);
+
+            fetch('/create_task', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = "/dashboard";  // Redirect on success
+                } else {
+                    console.error('Form submission failed');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
