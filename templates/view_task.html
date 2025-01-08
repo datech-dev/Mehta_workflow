@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Task</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7fc;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid #ddd;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+
+        section {
+            margin: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #007bff;
+            font-size: 1.8rem;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            color: #333;
+        }
+
+        p {
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        strong {
+            color: #007bff;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        ul li {
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 8px;
+        }
+
+        ul li:first-child {
+            background-color: #fff;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 1.1rem;
+            margin: 10px 0 5px;
+        }
+
+        select,
+        textarea,
+        button {
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 1.1rem;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .back-btn {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>View Task</h1>
+    </header>
+
+    <section>
+        <h2>Task Details</h2>
+        <p><strong>Task Name:</strong> {{ task['name'] }}</p>
+        <p><strong>Description:</strong> {{ task['description'] }}</p>
+        <p><strong>Created By:</strong> {{ task['created_by'] }}</p>
+        <p><strong>Assigned To:</strong> {{ task['assigned_to'] or 'Unassigned' }}</p>
+        <p><strong>Stage:</strong> {{ task['stage'] }}</p>
+        <p><strong>Deadline:</strong> {{ task['deadline'] }}</p>
+
+        <h3>Comments:</h3>
+<ul>
+    {% for comment in task['comments'] %}
+        <li>
+            <strong>{{ comment['comment'] }}</strong><br>
+            <em>Added on: {{ comment['timestamp'] }}</em>
+        </li>
+    {% else %}
+        <li>No comments yet.</li>
+    {% endfor %}
+</ul>
+
+    </section>
+
+    <section>
+        <h3>Update Task</h3>
+        <form method="POST">
+            <label for="status">Change Status:</label>
+            <select id="status" name="status">
+                <option value="In Progress" {% if task['stage'] == 'In Progress' %}selected{% endif %}>In Progress</option>
+                <option value="Blocked" {% if task['stage'] == 'Blocked' %}selected{% endif %}>Blocked</option>
+                <option value="Completed" {% if task['stage'] == 'Completed' %}selected{% endif %}>Completed</option>
+            </select>
+
+            <label for="comment">Add Comment:</label>
+            <textarea id="comment" name="comment" rows="4" placeholder="Enter your comment here..."></textarea>
+            <input type="hidden" id="timestamp" name="timestamp" value="{{ current_timestamp }}">
+
+            <button type="submit">Update Task</button>
+        </form>
+    </section>
+
+    <section class="back-btn">
+        <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+    </section>
+</body>
+</html>
