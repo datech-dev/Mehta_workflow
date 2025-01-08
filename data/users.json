@@ -1,0 +1,27 @@
+[
+    {
+        "username": "dhineshraja@live.com",
+        "password": "pbkdf2:sha256:260000$5hbW3TlnMX6xx8hT$ec3680d453185d08b281c3ecbb52cbd848c8351a72c518d5c75ced07aedc333f",
+        "role": "admin"
+    },
+    {
+        "username": "dhinesh",
+        "password": "qwerty",
+        "role": "Employee"
+    },
+    {
+        "username": "dhinesh_r",
+        "password": "qwerty",
+        "role": "Admin"
+    },
+    {
+        "username": "dhinesh_2",
+        "password": "pbkdf2:sha256:260000$2G4OJnSo1TAU3yXx$f3dc26c2445c6b9122e880592ce7046c1a48f4c80e1674ac0faad6fa620f82d5",
+        "role": "Employee"
+    },
+    {
+        "username": "dhinesh_admin",
+        "password": "pbkdf2:sha256:260000$koGPRNGNFs5nut1O$f5f640ea5dcc940bec91d3efaf69abd3091f0ed7aefaad39f3798fe3598a3692",
+        "role": "Admin"
+    }
+]
