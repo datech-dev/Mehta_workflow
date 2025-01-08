@@ -1,6 +1,6 @@
-Flask==2.2.2
-Flask-Session==0.4.0
-werkzeug==2.2.2
-pandas==1.5.3
-xlsxwriter==3.0.2
+Flask
+Flask-Session
+werkzeug
+pandas
+xlsxwriter
 gunicorn
