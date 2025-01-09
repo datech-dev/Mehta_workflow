@@ -266,50 +266,92 @@ def update_task_status(task_id):
 
 
 
+from flask import session, flash, redirect, url_for
+from datetime import datetime
+
 @app.route('/view_task/<int:task_id>', methods=['GET', 'POST'])
 def view_task(task_id):
-    tasks = load_json(TASK_FILE)
+    tasks = load_json(TASK_FILE)  # Load all tasks from JSON file
     task = next((task for task in tasks if task['id'] == task_id), None)
 
     if not task:
         flash("Task not found!", "danger")
         return redirect(url_for('dashboard'))
 
+    # Initialize `stage_changes`, `comments`, and `invoice_status_history` if not present
     if 'stage_changes' not in task:
-        task['stage_changes'] = []  # Initialize stage_changes if it doesn't exist
+        task['stage_changes'] = []
+    if 'comments' not in task:
+        task['comments'] = []
+    if 'invoice_status_history' not in task:
+        task['invoice_status_history'] = []
 
     if request.method == 'POST':
         # Extract form data
         new_status = request.form.get('status')
         new_comment = request.form.get('comment')
+        new_invoice_status = request.form.get('invoice_status')
+
+        # Fetch current logged-in user
+        if 'user' not in session:
+            flash("You must be logged in to make changes.", "danger")
+            return redirect(url_for('login'))
+        commented_by = session['user']  # Get the logged-in user from session
 
         # Ensure a comment is added when updating the stage
-        if new_status and not new_comment:
+        if new_status and new_status != task['stage'] and not new_comment:
             flash("Comments are mandatory when changing the stage.", "danger")
             return redirect(url_for('view_task', task_id=task_id))
 
-        # Record the status change and timestamp only if stage is updated
+        # Record stage change with comment and commented by
         if new_status and new_status != task['stage']:
-            task['stage_changes'].append({
+            change_entry = {
                 'stage': new_status,
                 'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'comment': new_comment or "No comment provided"
-            })
-            task['stage'] = new_status  # Update the current status
+                'comment': new_comment or "No comment provided",
+                'commented_by': commented_by
+            }
+            task['stage_changes'].append(change_entry)
+            task['stage'] = new_status  # Update the current stage
 
-        # Add comments regardless of stage change
-        if new_comment:
-            task['comments'].append({
+        # Add a comment without changing the stage
+        elif new_comment:
+            change_entry = {
+                'stage': "-",
+                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'comment': new_comment,
-                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            })
+                'commented_by': commented_by
+            }
+            task['stage_changes'].append(change_entry)
 
-        # Save updated task back to JSON file
+        # Handle invoice status updates with timestamp and commented_by
+        if new_invoice_status:
+            invoice_status_entry = {
+                'invoice_status': new_invoice_status,
+                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'commented_by': commented_by
+            }
+            task['invoice_status_history'].append(invoice_status_entry)
+
+        # Save the updated task back to the JSON file
         save_json(TASK_FILE, tasks)
         flash("Task updated successfully!", "success")
         return redirect(url_for('view_task', task_id=task_id))
 
-    return render_template('view_task.html', task=task)
+    # Determine the latest invoice status
+    latest_invoice_status = (
+        task['invoice_status_history'][-1]['invoice_status']
+        if task['invoice_status_history']
+        else "No status provided"
+    )
+
+    # Render the task details with history and latest invoice status
+    return render_template(
+        'view_task.html', task=task, latest_invoice_status=latest_invoice_status
+    )
+
+
+
 
 
 
@@ -328,7 +370,11 @@ def export_tasks():
     worksheet = workbook.add_worksheet()
 
     # Write headers
-    headers = ['Task ID', 'Task Name', 'Stage', 'Stage Timestamp', 'Comment', 'Comment Timestamp']
+    headers = [
+        'Task ID', 'Task Name', 'Current Stage', 
+        'Stage Change', 'Stage Timestamp', 'Stage Comment', 'Commented By', 
+        'Invoice Status', 'Invoice Status Timestamp', 'Invoice Status Commented By'
+    ]
     for col_num, header in enumerate(headers):
         worksheet.write(0, col_num, header)
 
@@ -337,26 +383,29 @@ def export_tasks():
     for task in tasks:
         task_id = task.get('id', '')
         task_name = task.get('name', '')
+        current_stage = task.get('stage', '')
 
-        # Write stage changes with associated comments
-        for stage_change in task.get('stage_changes', []):
+        # Handle stage changes and invoice statuses
+        invoice_status_history = task.get('invoice_status_history', [])
+        stage_changes = task.get('stage_changes', [])
+        
+        # Iterate through stage changes
+        for stage_change in stage_changes:
             worksheet.write(row, 0, task_id)
             worksheet.write(row, 1, task_name)
-            worksheet.write(row, 2, stage_change.get('stage', ''))
-            worksheet.write(row, 3, stage_change.get('timestamp', ''))
-            worksheet.write(row, 4, stage_change.get('comment', ''))
-            worksheet.write(row, 5, '')  # Leave comment timestamp empty for stage changes
-            row += 1
+            worksheet.write(row, 2, current_stage)
+            worksheet.write(row, 3, stage_change.get('stage', ''))
+            worksheet.write(row, 4, stage_change.get('timestamp', ''))
+            worksheet.write(row, 5, stage_change.get('comment', ''))
+            worksheet.write(row, 6, stage_change.get('commented_by', ''))
 
-        # # Write individual comments not linked to stage changes
-        # for comment in task.get('comments', []):
-        #     worksheet.write(row, 0, task_id)
-        #     worksheet.write(row, 1, task_name)
-        #     worksheet.write(row, 2, task.get('stage', ''))
-        #     worksheet.write(row, 3, '')  # Leave stage timestamp empty for comments
-        #     worksheet.write(row, 4, comment.get('comment', ''))
-        #     worksheet.write(row, 5, comment.get('timestamp', ''))
-        #     row += 1
+            # For each stage change, get the corresponding invoice status history
+            for invoice_status in invoice_status_history:
+                worksheet.write(row, 7, invoice_status.get('invoice_status', ''))
+                worksheet.write(row, 8, invoice_status.get('timestamp', ''))
+                worksheet.write(row, 9, invoice_status.get('commented_by', ''))
+
+            row += 1
 
     workbook.close()
     output.seek(0)
@@ -367,6 +416,9 @@ def export_tasks():
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": "attachment;filename=tasks_report.xlsx"}
     )
+
+
+
 
 
 
