@@ -122,7 +122,16 @@
     <header>
         <h1>View Task</h1>
     </header>
-
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul>
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+  
     <section>
         <h2>Task Details</h2>
         <p><strong>Task Name:</strong> {{ task['name'] }}</p>
@@ -132,20 +141,72 @@
         <p><strong>Stage:</strong> {{ task['stage'] }}</p>
         <p><strong>Deadline:</strong> {{ task['deadline'] }}</p>
 
-        <h3>Comments:</h3>
-<ul>
-    {% for comment in task['comments'] %}
-        <li>
-            <strong>{{ comment['comment'] }}</strong><br>
-            <em>Added on: {{ comment['timestamp'] }}</em>
-        </li>
-    {% else %}
-        <li>No comments yet.</li>
-    {% endfor %}
-</ul>
+    
 
     </section>
-
+    <section>
+        <h3>Task History</h3>
+        <table border="1" style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr>
+                    <th style="padding: 10px;">Timestamp</th>
+                    <th style="padding: 10px;">Comment</th>
+                    <th style="padding: 10px;">Stage Change</th>
+                    <th style="padding: 10px;">Commented By</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for change in task['stage_changes'] %}
+                    <tr>
+                        <td style="padding: 10px;">{{ change['timestamp'] }}</td>
+                        <td style="padding: 10px;">{{ change['comment'] }}</td>
+                        <td style="padding: 10px;">{{ change['stage'] }}</td>
+                        <td style="padding: 10px;">{{ change['commented_by'] }}</td>
+                    </tr>
+                {% endfor %}
+                {% for comment in task['comments'] %}
+                    <tr>
+                        <td style="padding: 10px;">{{ comment['timestamp'] }}</td>
+                        <td style="padding: 10px;">{{ comment['comment'] }}</td>
+                        <td style="padding: 10px;">&mdash;</td>
+                        <td style="padding: 10px;">{{ comment['commented_by'] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    
+    <section>
+        <h3>Invoice Status</h3>
+        <p><strong>Latest Status:</strong> {{ latest_invoice_status }}</p>
+        <form method="POST">
+            <label for="invoice_status">Update Invoice Status:</label>
+            <input type="text" id="invoice_status" name="invoice_status" placeholder="Enter new status">
+            <button type="submit">Update</button>
+        </form>
+    
+        <h4>Invoice Status History</h4>
+        <table border="1" style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr>
+                    <th style="padding: 10px;">Timestamp</th>
+                    <th style="padding: 10px;">Status</th>
+                    <th style="padding: 10px;">Commented By</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for status in task['invoice_status_history'] %}
+                    <tr>
+                        <td style="padding: 10px;">{{ status['timestamp'] }}</td>
+                        <td style="padding: 10px;">{{ status['invoice_status'] }}</td>
+                        <td style="padding: 10px;">{{ status['commented_by'] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    
+    
     <section>
         <h3>Update Task</h3>
         <form method="POST">
