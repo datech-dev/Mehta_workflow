@@ -8,14 +8,14 @@
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f4f7fc;
+            background-color: #eef2f7;
             color: #333;
             margin: 0;
             padding: 0;
         }
 
         header {
-            background-color: #007bff;
+            background: linear-gradient(90deg, #007bff, #0056b3);
             color: white;
             padding: 20px;
             text-align: center;
@@ -25,69 +25,67 @@
         header h1 {
             margin: 0;
             font-size: 2.5rem;
+            font-weight: bold;
         }
 
-        section {
-            margin: 20px;
+        main {
+            max-width: 1200px;
+            margin: 20px auto;
             padding: 20px;
             background-color: white;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
-        h2 {
+        section {
+            margin-bottom: 20px;
+        }
+
+        h2, h3 {
             color: #007bff;
-            font-size: 1.8rem;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
         }
 
-        h3 {
-            font-size: 1.5rem;
-            color: #333;
-        }
-
-        p {
+        p, label, th, td {
             font-size: 1rem;
-            margin-bottom: 10px;
         }
 
         strong {
-            color: #007bff;
+            color: #0056b3;
         }
 
         ul {
-            list-style-type: none;
+            list-style: none;
             padding: 0;
         }
 
         ul li {
-            background-color: #f1f1f1;
+            background-color: #f9f9f9;
             padding: 10px;
             border-radius: 5px;
-            margin-bottom: 8px;
-        }
-
-        ul li:first-child {
-            background-color: #fff;
+            margin-bottom: 10px;
         }
 
         form {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            gap: 15px;
         }
 
         label {
-            font-size: 1.1rem;
-            margin: 10px 0 5px;
+            font-weight: bold;
         }
 
-        select,
-        textarea,
-        button {
+        input, select, textarea, button {
             padding: 10px;
             font-size: 1rem;
             border: 1px solid #ccc;
             border-radius: 5px;
-            margin-bottom: 20px;
+        }
+
+        textarea {
+            resize: none;
         }
 
         button {
@@ -95,138 +93,160 @@
             color: white;
             border: none;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: all 0.3s ease;
         }
 
         button:hover {
             background-color: #0056b3;
         }
 
-        a {
-            color: #007bff;
-            text-decoration: none;
-            font-size: 1.1rem;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
         }
 
-        a:hover {
-            text-decoration: underline;
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
         }
 
         .back-btn {
-            margin-top: 20px;
             text-align: center;
+            margin-top: 30px;
+        }
+
+        .back-btn a {
+            font-size: 1.1rem;
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back-btn a:hover {
+            text-decoration: underline;
+        }
+
+        .highlight {
+            background-color: #f4f9ff;
+            padding: 10px;
+            border-left: 5px solid #007bff;
+            border-radius: 5px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>View Task</h1>
+        <h1>Task Overview</h1>
     </header>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <ul>
-        {% for category, message in messages %}
-          <li class="{{ category }}">{{ message }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
-  
-    <section>
-        <h2>Task Details</h2>
-        <p><strong>Task Name:</strong> {{ task['name'] }}</p>
-        <p><strong>Description:</strong> {{ task['description'] }}</p>
-        <p><strong>Created By:</strong> {{ task['created_by'] }}</p>
-        <p><strong>Assigned To:</strong> {{ task['assigned_to'] or 'Unassigned' }}</p>
-        <p><strong>Stage:</strong> {{ task['stage'] }}</p>
-        <p><strong>Deadline:</strong> {{ task['deadline'] }}</p>
+    <main>
+        <!-- Task Details -->
+        <section>
+            <h2>Task Details</h2>
+            <p><strong>Task Name:</strong> {{ task['name'] }}</p>
+            <p><strong>Description:</strong> {{ task['description'] }}</p>
+            <p><strong>Created By:</strong> {{ task['created_by'] }}</p>
+            <p><strong>Assigned To:</strong> {{ task['assigned_to'] or 'Unassigned' }}</p>
+            <p><strong>Stage:</strong> {{ task['stage'] }}</p>
+            <p><strong>Deadline:</strong> {{ task['deadline'] }}</p>
+        </section>
 
-    
+        <!-- Invoice Status and Update Task -->
+        <section>
+            <h2>Actions</h2>
+            <div class="highlight">
+                <h3>Invoice Status</h3>
+                <p><strong>Latest Status:</strong> {{ latest_invoice_status }}</p>
+                <form method="POST">
+                    <label for="invoice_status">Update Invoice Status:</label>
+                    <input type="text" id="invoice_status" name="invoice_status" placeholder="Enter new status">
+                    <button type="submit">Update Status</button>
+                </form>
+            </div>
+            <div class="highlight">
+                <h3>Update Task</h3>
+                <form method="POST">
+                    <label for="status">Change Status:</label>
+                    <select id="status" name="status">
+                        <option value="In Progress" {% if task['stage'] == 'In Progress' %}selected{% endif %}>In Progress</option>
+                        <option value="Blocked" {% if task['stage'] == 'Blocked' %}selected{% endif %}>Blocked</option>
+                        <option value="Completed" {% if task['stage'] == 'Completed' %}selected{% endif %}>Completed</option>
+                    </select>
+                    <label for="comment">Add Comment:</label>
+                    <textarea id="comment" name="comment" rows="4" placeholder="Enter your comment here..."></textarea>
+                    <button type="submit">Update Task</button>
+                </form>
+            </div>
+        </section>
 
-    </section>
-    <section>
-        <h3>Task History</h3>
-        <table border="1" style="width: 100%; border-collapse: collapse; text-align: left;">
-            <thead>
-                <tr>
-                    <th style="padding: 10px;">Timestamp</th>
-                    <th style="padding: 10px;">Comment</th>
-                    <th style="padding: 10px;">Stage Change</th>
-                    <th style="padding: 10px;">Commented By</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for change in task['stage_changes'] %}
+        <!-- Invoice Status History -->
+        <section>
+            <h3>Invoice Status History</h3>
+            <table>
+                <thead>
                     <tr>
-                        <td style="padding: 10px;">{{ change['timestamp'] }}</td>
-                        <td style="padding: 10px;">{{ change['comment'] }}</td>
-                        <td style="padding: 10px;">{{ change['stage'] }}</td>
-                        <td style="padding: 10px;">{{ change['commented_by'] }}</td>
+                        <th>Timestamp</th>
+                        <th>Status</th>
+                        <th>Commented By</th>
                     </tr>
-                {% endfor %}
-                {% for comment in task['comments'] %}
+                </thead>
+                <tbody>
+                    {% for status in task['invoice_status_history'] %}
+                        <tr>
+                            <td>{{ status['timestamp'] }}</td>
+                            <td>{{ status['invoice_status'] }}</td>
+                            <td>{{ status['commented_by'] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Task History -->
+        <section>
+            <h3>Task History</h3>
+            <table>
+                <thead>
                     <tr>
-                        <td style="padding: 10px;">{{ comment['timestamp'] }}</td>
-                        <td style="padding: 10px;">{{ comment['comment'] }}</td>
-                        <td style="padding: 10px;">&mdash;</td>
-                        <td style="padding: 10px;">{{ comment['commented_by'] }}</td>
+                        <th>Timestamp</th>
+                        <th>Comment</th>
+                        <th>Stage Change</th>
+                        <th>Commented By</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </section>
-    
-    <section>
-        <h3>Invoice Status</h3>
-        <p><strong>Latest Status:</strong> {{ latest_invoice_status }}</p>
-        <form method="POST">
-            <label for="invoice_status">Update Invoice Status:</label>
-            <input type="text" id="invoice_status" name="invoice_status" placeholder="Enter new status">
-            <button type="submit">Update</button>
-        </form>
-    
-        <h4>Invoice Status History</h4>
-        <table border="1" style="width: 100%; border-collapse: collapse; text-align: left;">
-            <thead>
-                <tr>
-                    <th style="padding: 10px;">Timestamp</th>
-                    <th style="padding: 10px;">Status</th>
-                    <th style="padding: 10px;">Commented By</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for status in task['invoice_status_history'] %}
-                    <tr>
-                        <td style="padding: 10px;">{{ status['timestamp'] }}</td>
-                        <td style="padding: 10px;">{{ status['invoice_status'] }}</td>
-                        <td style="padding: 10px;">{{ status['commented_by'] }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </section>
-    
-    
-    <section>
-        <h3>Update Task</h3>
-        <form method="POST">
-            <label for="status">Change Status:</label>
-            <select id="status" name="status">
-                <option value="In Progress" {% if task['stage'] == 'In Progress' %}selected{% endif %}>In Progress</option>
-                <option value="Blocked" {% if task['stage'] == 'Blocked' %}selected{% endif %}>Blocked</option>
-                <option value="Completed" {% if task['stage'] == 'Completed' %}selected{% endif %}>Completed</option>
-            </select>
+                </thead>
+                <tbody>
+                    {% for change in task['stage_changes'] %}
+                        <tr>
+                            <td>{{ change['timestamp'] }}</td>
+                            <td>{{ change['comment'] }}</td>
+                            <td>{{ change['stage'] }}</td>
+                            <td>{{ change['commented_by'] }}</td>
+                        </tr>
+                    {% endfor %}
+                    {% for comment in task['comments'] %}
+                        <tr>
+                            <td>{{ comment['timestamp'] }}</td>
+                            <td>{{ comment['comment'] }}</td>
+                            <td>&mdash;</td>
+                            <td>{{ comment['commented_by'] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
 
-            <label for="comment">Add Comment:</label>
-            <textarea id="comment" name="comment" rows="4" placeholder="Enter your comment here..."></textarea>
-            <input type="hidden" id="timestamp" name="timestamp" value="{{ current_timestamp }}">
-
-            <button type="submit">Update Task</button>
-        </form>
-    </section>
-
-    <section class="back-btn">
-        <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
-    </section>
+        <!-- Back Button -->
+        <section class="back-btn">
+            <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+        </section>
+    </main>
 </body>
 </html>
