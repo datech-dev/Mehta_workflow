@@ -427,45 +427,61 @@ def export_tasks():
     tasks = load_json(TASK_FILE)
     output = io.BytesIO()
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
-    worksheet = workbook.add_worksheet()
 
-    # Write headers
-    headers = [
+    # Create sheets
+    stage_changes_sheet = workbook.add_worksheet("Stage Changes")
+    invoice_status_sheet = workbook.add_worksheet("Invoice Status Updates")
+
+    # Write headers for stage changes sheet
+    stage_changes_headers = [
         'Task ID', 'Task Name', 'Current Stage', 
-        'Stage Change', 'Stage Timestamp', 'Stage Comment', 'Commented By', 
-        'Invoice Status', 'Invoice Status Timestamp', 'Invoice Status Commented By'
+        'Stage Change', 'Stage Timestamp', 'Stage Comment', 'Commented By'
     ]
-    for col_num, header in enumerate(headers):
-        worksheet.write(0, col_num, header)
+    for col_num, header in enumerate(stage_changes_headers):
+        stage_changes_sheet.write(0, col_num, header)
 
-    # Populate rows
-    row = 1
+    # Write headers for invoice status sheet
+    invoice_status_headers = [
+        'Task ID', 'Task Name', 'Invoice Status', 'Invoice Status Timestamp', 'Invoice Status Commented By'
+    ]
+    for col_num, header in enumerate(invoice_status_headers):
+        invoice_status_sheet.write(0, col_num, header)
+
+    # Populate stage changes sheet
+    stage_row = 1
     for task in tasks:
         task_id = task.get('id', '')
         task_name = task.get('name', '')
         current_stage = task.get('stage', '')
 
-        # Handle stage changes and invoice statuses
-        invoice_status_history = task.get('invoice_status_history', [])
-        stage_changes = task.get('stage_changes', [])
+        stage_changes = task.get('stage_changes', []) or [{}]
         
-        # Iterate through stage changes
+        # Include tasks without stage changes
         for stage_change in stage_changes:
-            worksheet.write(row, 0, task_id)
-            worksheet.write(row, 1, task_name)
-            worksheet.write(row, 2, current_stage)
-            worksheet.write(row, 3, stage_change.get('stage', ''))
-            worksheet.write(row, 4, stage_change.get('timestamp', ''))
-            worksheet.write(row, 5, stage_change.get('comment', ''))
-            worksheet.write(row, 6, stage_change.get('commented_by', ''))
+            stage_changes_sheet.write(stage_row, 0, task_id)
+            stage_changes_sheet.write(stage_row, 1, task_name)
+            stage_changes_sheet.write(stage_row, 2, current_stage)
+            stage_changes_sheet.write(stage_row, 3, stage_change.get('stage', ''))
+            stage_changes_sheet.write(stage_row, 4, stage_change.get('timestamp', ''))
+            stage_changes_sheet.write(stage_row, 5, stage_change.get('comment', ''))
+            stage_changes_sheet.write(stage_row, 6, stage_change.get('commented_by', ''))
+            stage_row += 1
 
-            # For each stage change, get the corresponding invoice status history
-            for invoice_status in invoice_status_history:
-                worksheet.write(row, 7, invoice_status.get('invoice_status', ''))
-                worksheet.write(row, 8, invoice_status.get('timestamp', ''))
-                worksheet.write(row, 9, invoice_status.get('commented_by', ''))
+    # Populate invoice status updates sheet
+    invoice_row = 1
+    for task in tasks:
+        task_id = task.get('id', '')
+        task_name = task.get('name', '')
 
-            row += 1
+        invoice_status_history = task.get('invoice_status_history', [])
+
+        for invoice_status in invoice_status_history:
+            invoice_status_sheet.write(invoice_row, 0, task_id)
+            invoice_status_sheet.write(invoice_row, 1, task_name)
+            invoice_status_sheet.write(invoice_row, 2, invoice_status.get('invoice_status', ''))
+            invoice_status_sheet.write(invoice_row, 3, invoice_status.get('timestamp', ''))
+            invoice_status_sheet.write(invoice_row, 4, invoice_status.get('commented_by', ''))
+            invoice_row += 1
 
     workbook.close()
     output.seek(0)
@@ -476,6 +492,9 @@ def export_tasks():
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": "attachment;filename=tasks_report.xlsx"}
     )
+
+
+
 
 
 
