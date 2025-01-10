@@ -183,9 +183,23 @@
                     <option value="Blocked">Blocked</option>
                     <option value="Completed">Completed</option>
                 </select>
+        
+                <label for="createdBy">Created By:</label>
+                <input type="text" id="createdBy" name="createdBy" placeholder="Enter creator name">
+        
+                <label for="assignedTo">Assigned To:</label>
+                <input type="text" id="assignedTo" name="assignedTo" placeholder="Enter assignee name">
+        
+                <label for="creationTime">Creation Date:</label>
+                <input type="date" id="creationTime" name="creationTime">
+        
+                <label for="deadline">Deadline:</label>
+                <input type="date" id="deadline" name="deadline">
+        
                 <button type="button" onclick="filterTasks()">Filter</button>
             </form>
         </section>
+        
 
         <section>
             <h2>All Tasks</h2>
@@ -198,9 +212,11 @@
                         <th>Assigned To</th>
                         <th>Stage</th>
                         <th>Deadline</th>
+                        <th>Creation Time</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
+                
                 <tbody>
                     <!-- Tasks will be dynamically populated here -->
                 </tbody>
@@ -211,28 +227,34 @@
     <script>
         async function loadTasks() {
     try {
-        const response = await fetch('/get_tasks',
-        {
-    method: 'GET',
-    credentials: 'same-origin'  // Ensures session cookie is included
-}
-        );
+        const response = await fetch('/get_tasks', {
+            method: 'GET',
+            credentials: 'same-origin' // Ensures session cookie is included
+        });
         if (!response.ok) {
             throw new Error("Failed to fetch tasks.");
         }
-        
+
         const tasks = await response.json();
         const tableBody = document.querySelector('#taskTable tbody');
         tableBody.innerHTML = ''; // Clear existing rows
 
         if (tasks.length === 0) {
             const row = document.createElement('tr');
-            row.innerHTML = `<td colspan="7">No tasks found</td>`;
+            row.innerHTML = `<td colspan="8">No tasks found</td>`; // Adjust colspan to match the new table structure
             tableBody.appendChild(row);
             return;
         }
 
         tasks.forEach(task => {
+            const creationDate = task.creation_time
+                ? new Date(task.creation_time).toLocaleDateString('en-GB') // Format as DD/MM/YYYY
+                : 'No creation time';
+
+            const deadlineDate = task.deadline
+                ? new Date(task.deadline).toLocaleDateString('en-GB') // Format as DD/MM/YYYY
+                : 'No deadline set';
+
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${task.name || 'Unnamed Task'}</td>
@@ -240,7 +262,8 @@
                 <td>${task.created_by || 'Unknown'}</td>
                 <td>${task.assigned_to || 'Unassigned'}</td>
                 <td>${task.stage}</td>
-                <td>${task.deadline ? new Date(task.deadline).toLocaleString() : 'No deadline set'}</td>
+                <td>${deadlineDate}</td>
+                <td>${creationDate}</td>
                 <td>
                     <button onclick="viewTask(${task.id})">View</button>
                 </td>
@@ -252,6 +275,8 @@
         alert("Unable to load tasks. Please try again.");
     }
 }
+
+
 
 
         async function createTask() {
@@ -271,17 +296,37 @@
         }
 
         function filterTasks() {
-            const stage = document.querySelector('#stage').value;
-            const rows = document.querySelectorAll('#taskTable tbody tr');
-            rows.forEach(row => {
-                const taskStage = row.children[4].textContent;
-                if (stage === '' || taskStage === stage) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
+    const stage = document.querySelector('#stage').value.toLowerCase();
+    const createdBy = document.querySelector('#createdBy').value.toLowerCase();
+    const assignedTo = document.querySelector('#assignedTo').value.toLowerCase();
+    const creationTime = document.querySelector('#creationTime').value;
+    const deadline = document.querySelector('#deadline').value;
+
+    const rows = document.querySelectorAll('#taskTable tbody tr');
+    rows.forEach(row => {
+        const taskStage = row.children[4].textContent.toLowerCase();
+        const taskCreatedBy = row.children[2].textContent.toLowerCase();
+        const taskAssignedTo = row.children[3].textContent.toLowerCase();
+        const taskCreationDate = row.children[6].textContent;
+        const taskDeadline = row.children[5].textContent;
+
+        const creationDateMatch = creationTime ? taskCreationDate === new Date(creationTime).toLocaleDateString('en-GB') : true;
+        const deadlineMatch = deadline ? taskDeadline === new Date(deadline).toLocaleDateString('en-GB') : true;
+
+        if (
+            (stage === '' || taskStage === stage) &&
+            (createdBy === '' || taskCreatedBy.includes(createdBy)) &&
+            (assignedTo === '' || taskAssignedTo.includes(assignedTo)) &&
+            creationDateMatch &&
+            deadlineMatch
+        ) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
         }
+    });
+}
+
 
         async function assignTask() {
             const taskId = document.querySelector('#taskId').value;
