@@ -7,6 +7,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_session import Session
 import xlsxwriter
 import io
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+
+
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -18,6 +24,34 @@ Session(app)
 DATA_FOLDER = './data'
 USER_FILE = os.path.join(DATA_FOLDER, 'users.json')
 TASK_FILE = os.path.join(DATA_FOLDER, 'tasks.json')
+
+# Outlook SMTP credentials
+SMTP_SERVER = 'smtp.hostinger.com'  # Replace with your SMTP server
+SMTP_PORT = 587 # Use 587 for TLS or 465 for SSL
+EMAIL_ADDRESS = 'contact@datechnologies.cloud'  # Replace with your email
+EMAIL_PASSWORD = 'N00bl337py*'  # Replace with your email password
+
+
+def send_email(subject, recipient, message_body):
+    """Send an email using custom domain SMTP."""
+    try:
+        message = MIMEMultipart()
+        message['From'] = EMAIL_ADDRESS
+        message['To'] = recipient
+        message['Subject'] = subject
+        message.attach(MIMEText(message_body, 'plain'))
+
+        # Connect to the SMTP server
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()  # Start TLS encryption
+        server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+
+        # Send the email
+        server.send_message(message)
+        server.quit()
+        print(f"Email sent to {recipient}")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
 
 
 def load_users():
@@ -91,21 +125,22 @@ def register():
     if request.method == 'POST':
         data = request.form
         users = load_json(USER_FILE)
-        
+
         # Check if the username already exists
         if any(user['username'] == data['username'] for user in users):
             return jsonify({"error": "Username already exists"}), 400
-        
-        # Create a new user with a hashed password
+
+        # Create a new user with email and hashed password
         new_user = {
             "username": data['username'],
-            "password": generate_password_hash(data['password']),  # Hash the password
+            "email": data['email'],  # Collect email from registration form
+            "password": generate_password_hash(data['password']),
             "role": data['role']
         }
         users.append(new_user)
         save_json(USER_FILE, users)
         return jsonify({"message": "User registered successfully"}), 201
-    
+
     return render_template('register.html')
 
 
@@ -179,7 +214,7 @@ def dashboard():
 def create_task():
     if request.method == 'POST':
         data = request.form
-        
+
         # Get the form fields
         task_name = data.get('name')
         task_description = data.get('description')
@@ -190,11 +225,11 @@ def create_task():
         if not task_name or not task_description or not task_deadline or not assigned_to:
             flash("All fields are required!", "error")
             return redirect(url_for('create_task'))
-        
+
         tasks = load_json(TASK_FILE)
 
         # Find the assigned user by their username
-        user = get_user_by_username(assigned_to)  # Assuming this is a function that fetches the user by their username
+        user = get_user_by_username(assigned_to)
         if not user:
             flash("User not found!", "error")
             return redirect(url_for('create_task'))
@@ -204,41 +239,66 @@ def create_task():
             "name": task_name,
             "description": task_description,
             "created_by": session['user'],
-            "assigned_to": assigned_to,  # The username of the assignee
-            "assigned_to_name": user['username'],  # Store the user's name for easier reference
-            "stage": "Creation",
-            "creation_time": datetime.utcnow().isoformat(),
-            "assignment_time": None,
+            "assigned_to": assigned_to,
             "deadline": task_deadline,
             "comments": [],
             "blocking_reasons": [],
-            "files": []
+            "files": [],
+            "stage": "Created",
+            "creation_time": datetime.utcnow().isoformat(),
         }
 
         tasks.append(new_task)
         save_json(TASK_FILE, tasks)
-        flash("Task created successfully!")
+
+        # Send email notification to the assigned user
+        subject = f"New Task Assigned: {task_name}"
+        message_body = f"Hello {user['username']},\n\n" \
+                       f"You have been assigned a new task:\n" \
+                       f"Task Name: {task_name}\n" \
+                       f"Description: {task_description}\n" \
+                       f"Deadline: {task_deadline}\n\n" \
+                       f"Best regards,\nTask Manager Team"
+        send_email(subject, user['email'], message_body)
+
+        flash("Task created and email sent successfully!")
         return redirect(url_for('dashboard'))
 
     # Load the list of users from your data source
-    users = load_users()  # Get the users from the JSON file
+    users = load_users()
     return render_template('create_task.html', users=users)
 
 
 
 @app.route('/assign_task/<int:task_id>', methods=['POST'])
-@role_required('admin')
+@role_required('Admin')  # Ensure only admins can assign tasks
 def assign_task(task_id):
-    data = request.json
     tasks = load_json(TASK_FILE)
+    data = request.json
     for task in tasks:
         if task['id'] == task_id:
             task['assigned_to'] = data['assigned_to']
-            task['assignment_time'] = datetime.utcnow().isoformat()
             task['stage'] = "Assigned"
+            task['assignment_time'] = datetime.utcnow().isoformat()
+
+            # Find the user by their username
+            user = get_user_by_username(data['assigned_to'])
+            if not user:
+                return jsonify({"error": "User not found"}), 404
+
             save_json(TASK_FILE, tasks)
-            # Add email notification logic here
-            return jsonify({"message": "Task assigned successfully"}), 200
+
+            # Send email notification to the assigned user
+            subject = f"Task Update: {task['name']}"
+            message_body = f"Hello {user['username']},\n\n" \
+                           f"You have been assigned a task:\n" \
+                           f"Task Name: {task['name']}\n" \
+                           f"Description: {task['description']}\n" \
+                           f"Deadline: {task['deadline']}\n\n" \
+                           f"Best regards,\nTask Manager Team"
+            send_email(subject, user['email'], message_body)
+
+            return jsonify({"message": "Task assigned and email sent successfully"}), 200
     return jsonify({"error": "Task not found"}), 404
 
 
