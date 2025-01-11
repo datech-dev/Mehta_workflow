@@ -1,126 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login</title>
     <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #333;
-            color: white;
-        }
+      body {
+        margin: 0;
+        font-family: "Arial", sans-serif;
+        display: flex;
+        height: 100vh;
+        background-color: #f0f4f8;
+      }
 
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: #444;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-        }
+      .container {
+        display: flex;
+        width: 100%;
+        height: 100%;
+      }
 
-        .login-box {
-            position: relative;
-            background: #555;
-            width: 350px;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        }
+      .left-panel {
+        flex: 1;
+        background: linear-gradient(135deg, #ff0080, #7928ca);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 4rem;
+        color: white;
+        position: relative;
+      }
 
-        .login-box::before {
-            content: "";
-            position: absolute;
-            top: -20px;
-            left: -20px;
-            width: 60px;
-            height: 60px;
-            background: limegreen;
-            clip-path: polygon(0 0, 100% 0, 0 100%);
-        }
+      .left-panel h1 {
+        font-size: 3rem;
+        font-weight: bold;
+        margin: 0 0 1rem;
+        line-height: 1.2;
+      }
 
-        .login-box::after {
-            content: "";
-            position: absolute;
-            bottom: -20px;
-            right: -20px;
-            width: 60px;
-            height: 60px;
-            background: limegreen;
-            clip-path: polygon(0 100%, 100% 100%, 100% 0);
-        }
+      .left-panel p {
+        font-size: 1rem;
+        margin-top: 1rem;
+        opacity: 0.8;
+        max-width: 400px;
+      }
 
-        .login-title {
-            text-align: center;
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-        }
+      .left-panel .quote {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        margin-bottom: 2rem;
+        letter-spacing: 1px;
+        opacity: 0.7;
+      }
 
-        .form-group {
-            margin-bottom: 15px;
-        }
+      .right-panel {
+        flex: 1;
+        background: white;
+        border-top-left-radius: 50px;
+        border-bottom-left-radius: 50px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 4rem;
+      }
 
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #666;
-            border-radius: 5px;
-            background: #666;
-            color: white;
-        }
+      .right-panel h2 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: #333;
+      }
 
-        .form-group input:focus {
-            outline: none;
-            border-color: limegreen;
-        }
+      .right-panel p {
+        font-size: 1rem;
+        color: #666;
+        margin-bottom: 2rem;
+      }
 
-        .submit-btn {
-            width: 100%;
-            padding: 10px;
-            background: limegreen;
-            border: none;
-            border-radius: 5px;
-            color: white;
-            font-size: 1rem;
-            cursor: pointer;
-            text-align: center;
-        }
+      .form-group {
+        width: 100%;
+        max-width: 300px;
+        margin-bottom: 1.5rem;
+      }
 
-        .submit-btn:hover {
-            background: darkgreen;
-        }
+      .form-group input {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 1rem;
+        margin-top: 0.5rem;
+      }
 
-        .login-box label {
-            font-size: 0.9rem;
-        }
+      .form-group label {
+        font-size: 0.9rem;
+        color: #333;
+      }
+
+      button {
+        width: 100%;
+        max-width: 300px;
+        padding: 0.8rem;
+        background-color: #000;
+        border: none;
+        color: white;
+        font-size: 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-bottom: 1rem;
+      }
+
+      button:hover {
+        background-color: #333;
+      }
+
+      .signup {
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 1rem;
+      }
+
+      .signup a {
+        color: #007bff;
+        text-decoration: none;
+      }
+
+      .signup a:hover {
+        text-decoration: underline;
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <div class="container">
-        <div class="login-box">
-            <h2 class="login-title">Member Login</h2>
-            <form method="POST" action="/login">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" placeholder="yournickname" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" placeholder="********" required>
-                </div>
-                <button type="submit" class="submit-btn">Start</button>
-            </form>
-        </div>
-    </div>
+      <!-- Left panel -->
+      <div class="left-panel">
+        <div class="quote">Mehta & Mehta</div>
+        <h1>Get Everything You Want</h1>
+        <p>
+          You can get everything you want if you work hard, trust the process,
+          and stick to the plan.
+        </p>
+      </div>
 
-</body>
+      <!-- Right panel -->
+      <div class="right-panel">
+        <h2>Welcome Back</h2>
+        <p>Enter your Username and password to access your account</p>
+
+        <form method="POST" action="/login">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              placeholder="Enter your username"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Enter your password"
+              required
+            />
+          </div>
+
+          <button type="submit">Login</button>
+
+          <div class="signup">
+            Forgot your password? <a href="#">Click here</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
 </html>
