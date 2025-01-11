@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash, Response
+from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash, Response, send_file
 
 import os
 import json
@@ -10,7 +10,6 @@ import io
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-
 
 
 
@@ -181,33 +180,51 @@ def logout():
 
 @app.route('/get_tasks', methods=['GET'])
 def get_tasks():
-
     username = session.get('user')
     role = session.get('role')
-    print(session)
-    print("Role:", role)
-    tasks = load_json(TASK_FILE) 
-     # Load the task data from the JSON file
+    tasks = load_json(TASK_FILE)  # Load the task data from the JSON file
 
     # Filter tasks based on the role
     if role == 'Admin':
         user_tasks = tasks  # Admins see all tasks
     elif role == 'Employee':
-        user_tasks = [task for task in tasks if task['assigned_to'] == username]
-        print(username)  # Employees see only assigned tasks
+        user_tasks = [task for task in tasks if task['assigned_to'] == username]  # Employees see only their tasks
     else:
-        user_tasks = []
+        user_tasks = []  # No tasks for other roles (if any)
 
     return jsonify(user_tasks)
+
 
 
 @app.route('/dashboard')
 def dashboard():
     if 'user' not in session:
         return redirect(url_for('login'))
-    role = session.get('role')
-    return render_template('dashboard.html', role=role)
 
+    tasks = load_json(TASK_FILE)  # Load all tasks from JSON
+
+    # Calculate time left for each task
+    now = datetime.now()
+    for task in tasks:
+        if 'deadline' in task and task['deadline']:
+            try:
+                deadline = datetime.strptime(task['deadline'], '%Y-%m-%d %H:%M:%S')
+                time_difference = deadline - now
+                if time_difference.total_seconds() > 0:
+                    task['time_left'] = f"{time_difference.days} days, {time_difference.seconds // 3600} hours"
+                else:
+                    task['time_left'] = "Deadline passed"
+            except ValueError:
+                task['time_left'] = "Invalid deadline format"
+        else:
+            task['time_left'] = "No deadline"
+
+    role = session.get('role')
+    return render_template('dashboard.html', role=role, tasks=tasks)
+
+
+
+from datetime import datetime, timedelta
 
 @app.route('/create_task', methods=['GET', 'POST'])
 @role_required('Admin')  # Ensure only admins can access this page
@@ -220,13 +237,28 @@ def create_task():
         task_description = data.get('description')
         task_deadline = data.get('deadline')
         assigned_to = data.get('assigned_to')  # This will be the username of the assignee
+        unique_task_id = f"{task_name}_{task_deadline}_{assigned_to}"  # Generate a unique identifier
 
         # Check if the required fields are present
         if not task_name or not task_description or not task_deadline or not assigned_to:
             flash("All fields are required!", "error")
             return redirect(url_for('create_task'))
 
+        # Parse the deadline into a standardized format
+        try:
+            parsed_deadline = datetime.strptime(task_deadline, '%Y-%m-%dT%H:%M')
+            formatted_deadline = parsed_deadline.strftime('%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            flash("Invalid deadline format!", "error")
+            return redirect(url_for('create_task'))
+
         tasks = load_json(TASK_FILE)
+
+        # Check if a task with the same unique identifier already exists
+        for task in tasks:
+            if task.get('unique_id') == unique_task_id:
+                flash("This task already exists.", "error")
+                return redirect(url_for('create_task'))
 
         # Find the assigned user by their username
         user = get_user_by_username(assigned_to)
@@ -234,17 +266,31 @@ def create_task():
             flash("User not found!", "error")
             return redirect(url_for('create_task'))
 
+        # Calculate the time left until the deadline
+        # Calculate the time left until the deadline
+        now = datetime.utcnow()
+        time_difference = parsed_deadline - now
+
+        if time_difference.total_seconds() > 0:
+            total_seconds = int(time_difference.total_seconds())
+            days_left = total_seconds // (24 * 3600)
+            time_left = f"{days_left} days left until the deadline"
+        else:
+            time_left = "Deadline has already passed"
+
+
         new_task = {
             "id": len(tasks) + 1,
+            "unique_id": unique_task_id,  # Add the unique identifier to the task
             "name": task_name,
             "description": task_description,
             "created_by": session['user'],
             "assigned_to": assigned_to,
-            "deadline": task_deadline,
+            "deadline": formatted_deadline,  # Use the formatted deadline
             "comments": [],
             "blocking_reasons": [],
             "files": [],
-            "stage": "Created",
+            "stage": "Allotted",
             "creation_time": datetime.utcnow().isoformat(),
         }
 
@@ -257,7 +303,8 @@ def create_task():
                        f"You have been assigned a new task:\n" \
                        f"Task Name: {task_name}\n" \
                        f"Description: {task_description}\n" \
-                       f"Deadline: {task_deadline}\n\n" \
+                       f"Deadline: {task_deadline}\n" \
+                       f"Time Left: {time_left}\n\n" \
                        f"Best regards,\nTask Manager Team"
         send_email(subject, user['email'], message_body)
 
@@ -267,6 +314,8 @@ def create_task():
     # Load the list of users from your data source
     users = load_users()
     return render_template('create_task.html', users=users)
+
+
 
 
 
@@ -331,7 +380,7 @@ from datetime import datetime
 
 @app.route('/view_task/<int:task_id>', methods=['GET', 'POST'])
 def view_task(task_id):
-    tasks = load_json(TASK_FILE)  # Load all tasks from JSON file
+    tasks = load_json(TASK_FILE)
     task = next((task for task in tasks if task['id'] == task_id), None)
 
     if not task:
@@ -346,50 +395,62 @@ def view_task(task_id):
     if 'invoice_status_history' not in task:
         task['invoice_status_history'] = []
 
+    # Calculate time left until the deadline
+    time_left = None
+    if 'deadline' in task and task['deadline']:
+        try:
+            deadline = datetime.strptime(task['deadline'], '%Y-%m-%d %H:%M:%S')
+            now = datetime.utcnow()
+            time_difference = deadline - now
+            if time_difference.total_seconds() > 0:
+                time_left = {
+                    'days': time_difference.days,
+                    'hours': time_difference.seconds // 3600,
+                    'minutes': (time_difference.seconds % 3600) // 60,
+                }
+            else:
+                time_left = "Deadline has passed."
+        except ValueError:
+            time_left = "Invalid deadline format."
+
     if request.method == 'POST':
-        # Extract form data
         new_status = request.form.get('status')
         new_comment = request.form.get('comment')
         new_invoice_status = request.form.get('invoice_status')
+        user_role = session.get('role')
+        user_name = session.get('user')
 
-        # Fetch current logged-in user
-        if 'user' not in session:
-            flash("You must be logged in to make changes.", "danger")
-            return redirect(url_for('login'))
-        commented_by = session['user']  # Get the logged-in user from session
-
-        # Ensure a comment is added when updating the stage
-        if new_status and new_status != task['stage'] and not new_comment:
-            flash("Comments are mandatory when changing the stage.", "danger")
+        # Ensure only admins can change the task stage
+        if new_status and user_role != 'Admin':
+            flash("You do not have permission to change the task stage.", "danger")
             return redirect(url_for('view_task', task_id=task_id))
 
-        # Record stage change with comment and commented by
+        # Add a stage change if an admin is updating it
         if new_status and new_status != task['stage']:
             change_entry = {
                 'stage': new_status,
                 'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'comment': new_comment or "No comment provided",
-                'commented_by': commented_by
+                'commented_by': user_name,
             }
             task['stage_changes'].append(change_entry)
-            task['stage'] = new_status  # Update the current stage
+            task['stage'] = new_status
 
-        # Add a comment without changing the stage
-        elif new_comment:
-            change_entry = {
-                'stage': "-",
+        # Add a comment for admins or employees
+        if new_comment:
+            comment_entry = {
                 'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'comment': new_comment,
-                'commented_by': commented_by
+                'commented_by': user_name,
             }
-            task['stage_changes'].append(change_entry)
+            task['comments'].append(comment_entry)
 
-        # Handle invoice status updates with timestamp and commented_by
+        # Handle invoice status updates (accessible to both admins and employees)
         if new_invoice_status:
             invoice_status_entry = {
                 'invoice_status': new_invoice_status,
                 'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'commented_by': commented_by
+                'commented_by': user_name,
             }
             task['invoice_status_history'].append(invoice_status_entry)
 
@@ -398,28 +459,20 @@ def view_task(task_id):
         flash("Task updated successfully!", "success")
         return redirect(url_for('view_task', task_id=task_id))
 
-    # Determine the latest invoice status
     latest_invoice_status = (
         task['invoice_status_history'][-1]['invoice_status']
         if task['invoice_status_history']
         else "No status provided"
     )
 
-    # Render the task details with history and latest invoice status
     return render_template(
-        'view_task.html', task=task, latest_invoice_status=latest_invoice_status
+        'view_task.html',
+        task=task,
+        time_left=time_left,
+        latest_invoice_status=latest_invoice_status,
+        is_admin=(session.get('role') == 'Admin'),
     )
 
-
-
-
-
-
-
-
-
-import pandas as pd
-from flask import send_file
 
 
 @app.route('/export_tasks', methods=['GET'])
@@ -434,7 +487,8 @@ def export_tasks():
 
     # Write headers for stage changes sheet
     stage_changes_headers = [
-        'Task ID', 'Task Name', 'Current Stage', 
+        'Task ID', 'Task Name', 'Description', 'Created By', 'Assigned To',
+        'Deadline', 'Creation Time', 'Current Stage',
         'Stage Change', 'Stage Timestamp', 'Stage Comment', 'Commented By'
     ]
     for col_num, header in enumerate(stage_changes_headers):
@@ -442,7 +496,9 @@ def export_tasks():
 
     # Write headers for invoice status sheet
     invoice_status_headers = [
-        'Task ID', 'Task Name', 'Invoice Status', 'Invoice Status Timestamp', 'Invoice Status Commented By'
+        'Task ID', 'Task Name', 'Description', 'Created By', 'Assigned To',
+        'Deadline', 'Creation Time', 'Invoice Status', 'Invoice Status Timestamp',
+        'Invoice Status Commented By'
     ]
     for col_num, header in enumerate(invoice_status_headers):
         invoice_status_sheet.write(0, col_num, header)
@@ -452,19 +508,30 @@ def export_tasks():
     for task in tasks:
         task_id = task.get('id', '')
         task_name = task.get('name', '')
+        description = task.get('description', '')
+        created_by = task.get('created_by', '')
+        assigned_to = task.get('assigned_to', '')
+        deadline = task.get('deadline', '')
+        creation_time = task.get('creation_time', '')
         current_stage = task.get('stage', '')
 
-        stage_changes = task.get('stage_changes', []) or [{}]
-        
-        # Include tasks without stage changes
+        stage_changes = task.get('stage_changes', [])
+        if not stage_changes:  # Include tasks without stage changes
+            stage_changes = [{}]
+
         for stage_change in stage_changes:
             stage_changes_sheet.write(stage_row, 0, task_id)
             stage_changes_sheet.write(stage_row, 1, task_name)
-            stage_changes_sheet.write(stage_row, 2, current_stage)
-            stage_changes_sheet.write(stage_row, 3, stage_change.get('stage', ''))
-            stage_changes_sheet.write(stage_row, 4, stage_change.get('timestamp', ''))
-            stage_changes_sheet.write(stage_row, 5, stage_change.get('comment', ''))
-            stage_changes_sheet.write(stage_row, 6, stage_change.get('commented_by', ''))
+            stage_changes_sheet.write(stage_row, 2, description)
+            stage_changes_sheet.write(stage_row, 3, created_by)
+            stage_changes_sheet.write(stage_row, 4, assigned_to)
+            stage_changes_sheet.write(stage_row, 5, deadline)
+            stage_changes_sheet.write(stage_row, 6, creation_time)
+            stage_changes_sheet.write(stage_row, 7, current_stage)
+            stage_changes_sheet.write(stage_row, 8, stage_change.get('stage', ''))
+            stage_changes_sheet.write(stage_row, 9, stage_change.get('timestamp', ''))
+            stage_changes_sheet.write(stage_row, 10, stage_change.get('comment', ''))
+            stage_changes_sheet.write(stage_row, 11, stage_change.get('commented_by', ''))
             stage_row += 1
 
     # Populate invoice status updates sheet
@@ -472,15 +539,27 @@ def export_tasks():
     for task in tasks:
         task_id = task.get('id', '')
         task_name = task.get('name', '')
+        description = task.get('description', '')
+        created_by = task.get('created_by', '')
+        assigned_to = task.get('assigned_to', '')
+        deadline = task.get('deadline', '')
+        creation_time = task.get('creation_time', '')
 
         invoice_status_history = task.get('invoice_status_history', [])
+        if not invoice_status_history:  # Include tasks without invoice updates
+            invoice_status_history = [{}]
 
         for invoice_status in invoice_status_history:
             invoice_status_sheet.write(invoice_row, 0, task_id)
             invoice_status_sheet.write(invoice_row, 1, task_name)
-            invoice_status_sheet.write(invoice_row, 2, invoice_status.get('invoice_status', ''))
-            invoice_status_sheet.write(invoice_row, 3, invoice_status.get('timestamp', ''))
-            invoice_status_sheet.write(invoice_row, 4, invoice_status.get('commented_by', ''))
+            invoice_status_sheet.write(invoice_row, 2, description)
+            invoice_status_sheet.write(invoice_row, 3, created_by)
+            invoice_status_sheet.write(invoice_row, 4, assigned_to)
+            invoice_status_sheet.write(invoice_row, 5, deadline)
+            invoice_status_sheet.write(invoice_row, 6, creation_time)
+            invoice_status_sheet.write(invoice_row, 7, invoice_status.get('invoice_status', ''))
+            invoice_status_sheet.write(invoice_row, 8, invoice_status.get('timestamp', ''))
+            invoice_status_sheet.write(invoice_row, 9, invoice_status.get('commented_by', ''))
             invoice_row += 1
 
     workbook.close()
@@ -495,6 +574,182 @@ def export_tasks():
 
 
 
+
+from flask import Response
+import xlsxwriter
+import io
+from datetime import datetime
+
+from datetime import datetime
+
+@app.route('/daily_report', methods=['GET'])
+@role_required('Admin')  # Ensure only admins can access this report
+def daily_report():
+    tasks = load_json(TASK_FILE)
+    today = datetime.utcnow().strftime('%Y-%m-%d')  # Current date in YYYY-MM-DD format
+
+    # Filter tasks based on today's creation date or updates
+    filtered_tasks = []
+    for task in tasks:
+        # Check if the task was created today
+        if task['creation_time'].startswith(today):
+            filtered_tasks.append(task)
+            continue
+
+        # Check if there are comments added today
+        for comment in task.get('comments', []):
+            if comment['timestamp'].startswith(today):
+                filtered_tasks.append(task)
+                break
+
+        # Check if there are invoice status updates today
+        for invoice_status in task.get('invoice_status_history', []):
+            if invoice_status['timestamp'].startswith(today):
+                filtered_tasks.append(task)
+                break
+
+    # Remove duplicates (if a task is added multiple times from different checks)
+    filtered_tasks = {task['id']: task for task in filtered_tasks}.values()
+
+    # Generate Excel file
+    output = io.BytesIO()
+    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+    worksheet = workbook.add_worksheet("Daily Report")
+
+    # Write headers
+    headers = [
+        "Task ID", "Task Name", "Description", "Created By", "Assigned To",
+        "Stage", "Deadline", "Creation Time", "Comment Timestamp", "Commented By",
+        "Comment Text", "Invoice Status Timestamp", "Invoice Status", "Invoice Commented By"
+    ]
+    for col_num, header in enumerate(headers):
+        worksheet.write(0, col_num, header)
+
+    # Populate rows
+    row_num = 1
+    for task in filtered_tasks:
+        # Format dates as dd/mm/yyyy
+        creation_time = format_date(task.get('creation_time', ''))
+        deadline = format_date(task.get('deadline', ''))
+
+        # Write task creation row
+        worksheet.write(row_num, 0, task['id'])
+        worksheet.write(row_num, 1, task['name'])
+        worksheet.write(row_num, 2, task['description'])
+        worksheet.write(row_num, 3, task['created_by'])
+        worksheet.write(row_num, 4, task['assigned_to'])
+        worksheet.write(row_num, 5, task['stage'])
+        worksheet.write(row_num, 6, deadline)
+        worksheet.write(row_num, 7, creation_time)
+        worksheet.write(row_num, 8, "")  # No comment timestamp for this row
+        worksheet.write(row_num, 9, "")  # No commented_by for this row
+        worksheet.write(row_num, 10, "")  # No comment text for this row
+        worksheet.write(row_num, 11, "")  # No invoice timestamp for this row
+        worksheet.write(row_num, 12, "")  # No invoice status for this row
+        worksheet.write(row_num, 13, "")  # No invoice commented_by for this row
+        row_num += 1
+
+        # Write rows for today's comments
+        for comment in task.get('comments', []):
+            if comment['timestamp'].startswith(today):
+                comment_timestamp = format_date(comment['timestamp'])
+                worksheet.write(row_num, 0, task['id'])
+                worksheet.write(row_num, 1, task['name'])
+                worksheet.write(row_num, 2, task['description'])
+                worksheet.write(row_num, 3, task['created_by'])
+                worksheet.write(row_num, 4, task['assigned_to'])
+                worksheet.write(row_num, 5, task['stage'])
+                worksheet.write(row_num, 6, deadline)
+                worksheet.write(row_num, 7, creation_time)
+                worksheet.write(row_num, 8, comment_timestamp)  # Comment timestamp
+                worksheet.write(row_num, 9, comment['commented_by'])  # Commented by
+                worksheet.write(row_num, 10, comment['comment'])  # Comment text
+                worksheet.write(row_num, 11, "")  # No invoice timestamp for this row
+                worksheet.write(row_num, 12, "")  # No invoice status for this row
+                worksheet.write(row_num, 13, "")  # No invoice commented_by for this row
+                row_num += 1
+
+        # Write rows for today's invoice status updates
+        for invoice_status in task.get('invoice_status_history', []):
+            if invoice_status['timestamp'].startswith(today):
+                invoice_timestamp = format_date(invoice_status['timestamp'])
+                worksheet.write(row_num, 0, task['id'])
+                worksheet.write(row_num, 1, task['name'])
+                worksheet.write(row_num, 2, task['description'])
+                worksheet.write(row_num, 3, task['created_by'])
+                worksheet.write(row_num, 4, task['assigned_to'])
+                worksheet.write(row_num, 5, task['stage'])
+                worksheet.write(row_num, 6, deadline)
+                worksheet.write(row_num, 7, creation_time)
+                worksheet.write(row_num, 8, "")  # No comment timestamp for this row
+                worksheet.write(row_num, 9, "")  # No commented_by for this row
+                worksheet.write(row_num, 10, "")  # No comment text for this row
+                worksheet.write(row_num, 11, invoice_timestamp)  # Invoice timestamp
+                worksheet.write(row_num, 12, invoice_status['invoice_status'])  # Invoice status
+                worksheet.write(row_num, 13, invoice_status.get('commented_by', ''))  # Invoice commented_by
+                row_num += 1
+
+    workbook.close()
+    output.seek(0)
+
+    # Send the file as a response
+    return Response(
+        output,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment;filename=daily_report_{today}.xlsx"}
+    )
+
+
+def format_date(date_str):
+    """Format a date string to dd/mm/yyyy format."""
+    if not date_str:
+        return ""
+    try:
+        # Try ISO format first
+        date_obj = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%f')
+        return date_obj.strftime('%d/%m/%Y')
+    except ValueError:
+        try:
+            # Try standard datetime format
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S')
+            return date_obj.strftime('%d/%m/%Y')
+        except ValueError:
+            return date_str  # Return original string if format is incorrect
+
+
+def format_date(date_str):
+    """Format a date string to dd/mm/yyyy format."""
+    if not date_str:
+        return ""
+    try:
+        # Try ISO format first
+        date_obj = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%f')
+        return date_obj.strftime('%d/%m/%Y')
+    except ValueError:
+        try:
+            # Try standard datetime format
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S')
+            return date_obj.strftime('%d/%m/%Y')
+        except ValueError:
+            return date_str  # Return original string if format is incorrect
+
+
+
+def format_date(date_str):
+    """Format a date string to dd/mm/yyyy format."""
+    if not date_str:
+        return ""
+    try:
+        # Try ISO format first
+        date_obj = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%f')
+        return date_obj.strftime('%d/%m/%Y')
+    except ValueError:
+        try:
+            # Try standard datetime format
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S')
+            return date_obj.strftime('%d/%m/%Y')
+        except ValueError:
+            return date_str  # Return original string if format is incorrect
 
 
 
