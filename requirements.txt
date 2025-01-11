@@ -3,7 +3,7 @@ Flask-Session
 werkzeug
 pandas
 datetime
-io
+Python-IO
 smtplib
 email
 xlsxwriter
