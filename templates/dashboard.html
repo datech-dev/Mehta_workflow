@@ -138,38 +138,31 @@
 
     <div class="container">
         {% if session['role'] == 'Admin' %}
-        <!-- Admin Features -->
-        <section style="display: flex; gap: 2rem;">
-    <!-- Dashboard -->
-<div style="flex: 1;">
-    <h2>Dashboard</h2>
-    
-    <!-- Create Task Button -->
-    <a href="{{ url_for('create_task') }}">
-        <button>Create Task</button>
-    </a>
+<section style="display: flex; gap: 2rem;">
+    <div style="flex: 1;">
+        <h2>Dashboard</h2>
+        <a href="{{ url_for('create_task') }}">
+            <button>Create Task</button>
+        </a>
+    </div>
+    <div style="flex: 1;">
+        <h2>Assign Task</h2>
+        <form id="assignForm">
+            <label for="taskId">Task ID:</label>
+            <input type="number" id="taskId" name="taskId" required>
+            <label for="userId">Assign To (User ID):</label>
+            <input type="number" id="userId" name="userId" required>
+            <button type="button" onclick="assignTask()">Assign</button>
+        </form>
+    </div>
+</section>
+<h2>Generate Reports</h2>
+<div style="display: flex; gap: 1rem;">
+    <button onclick="generateReport()">Download Full Report</button>
+    <button onclick="generateDailyReport()">Download Daily Report</button>
 </div>
+{% endif %}
 
-        
-            <!-- Assign Task -->
-            <div style="flex: 1;">
-                <h2>Assign Task</h2>
-                <form id="assignForm">
-                    <label for="taskId">Task ID:</label>
-                    <input type="number" id="taskId" name="taskId" required>
-        
-                    <label for="userId">Assign To (User ID):</label>
-                    <input type="number" id="userId" name="userId" required>
-        
-                    <button type="button" onclick="assignTask()">Assign</button>
-                </form>
-            </div>
-        </section>
-        
-            <h2>Generate Report</h2>
-            <button onclick="generateReport()">Download Report</button>
-        </section>
-        {% endif %}
 
         <section>
             <h2>Filter Tasks</h2>
@@ -177,51 +170,49 @@
                 <label for="stage">Stage:</label>
                 <select id="stage" name="stage">
                     <option value="">All</option>
-                    <option value="Creation">Creation</option>
+                    <option value="     ">Allotted</option>
                     <option value="Assigned">Assigned</option>
                     <option value="In Progress">In Progress</option>
                     <option value="Blocked">Blocked</option>
                     <option value="Completed">Completed</option>
                 </select>
-        
                 <label for="createdBy">Created By:</label>
                 <input type="text" id="createdBy" name="createdBy" placeholder="Enter creator name">
-        
                 <label for="assignedTo">Assigned To:</label>
                 <input type="text" id="assignedTo" name="assignedTo" placeholder="Enter assignee name">
-        
                 <label for="creationTime">Creation Date:</label>
                 <input type="date" id="creationTime" name="creationTime">
-        
                 <label for="deadline">Deadline:</label>
                 <input type="date" id="deadline" name="deadline">
-        
                 <button type="button" onclick="filterTasks()">Filter</button>
             </form>
         </section>
-        
 
         <section>
             <h2>All Tasks</h2>
-            <table id="taskTable">
-                <thead>
-                    <tr>
-                        <th>Task Name</th>
-                        <th>Description</th>
-                        <th>Created By</th>
-                        <th>Assigned To</th>
-                        <th>Stage</th>
-                        <th>Deadline</th>
-                        <th>Creation Time</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                
-                <tbody>
-                    <!-- Tasks will be dynamically populated here -->
-                </tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table id="taskTable">
+                    <thead>
+                        <tr>
+                            <th>Task Name</th>
+                            <th>Description</th>
+                            <th>Created By</th>
+                            <th>Assigned To</th>
+                            <th>Stage</th>
+                            <th>Deadline</th>
+                            <th>Time Left</th>
+                            <th>Creation Time</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Tasks will be dynamically populated here -->
+                    </tbody>
+                </table>
+            </div>
         </section>
+        
+        
     </div>
 
     <script>
@@ -231,6 +222,7 @@
             method: 'GET',
             credentials: 'same-origin' // Ensures session cookie is included
         });
+
         if (!response.ok) {
             throw new Error("Failed to fetch tasks.");
         }
@@ -241,12 +233,28 @@
 
         if (tasks.length === 0) {
             const row = document.createElement('tr');
-            row.innerHTML = `<td colspan="8">No tasks found</td>`; // Adjust colspan to match the new table structure
+            row.innerHTML = `<td colspan="9">No tasks found</td>`;
             tableBody.appendChild(row);
             return;
         }
 
         tasks.forEach(task => {
+            const now = new Date();
+            let timeLeft = "No deadline set";
+
+            if (task.deadline) {
+                const deadline = new Date(task.deadline);
+                const diff = deadline - now;
+                if (diff > 0) {
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    timeLeft = `${days} days, ${hours} hours, ${minutes} minutes`;
+                } else {
+                    timeLeft = "Deadline passed";
+                }
+            }
+
             const creationDate = task.creation_time
                 ? new Date(task.creation_time).toLocaleDateString('en-GB') // Format as DD/MM/YYYY
                 : 'No creation time';
@@ -263,6 +271,7 @@
                 <td>${task.assigned_to || 'Unassigned'}</td>
                 <td>${task.stage}</td>
                 <td>${deadlineDate}</td>
+                <td>${timeLeft}</td>
                 <td>${creationDate}</td>
                 <td>
                     <button onclick="viewTask(${task.id})">View</button>
@@ -274,57 +283,6 @@
         console.error("Error loading tasks:", error);
         alert("Unable to load tasks. Please try again.");
     }
-}
-
-
-
-
-        async function createTask() {
-            const formData = new FormData(document.querySelector('#createTaskForm'));
-            const data = Object.fromEntries(formData.entries());
-
-            const response = await fetch('/create_task', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-
-            const result = await response.json();
-            alert(result.message);
-            document.querySelector('#createTaskForm').reset();
-            loadTasks();
-        }
-
-        function filterTasks() {
-    const stage = document.querySelector('#stage').value.toLowerCase();
-    const createdBy = document.querySelector('#createdBy').value.toLowerCase();
-    const assignedTo = document.querySelector('#assignedTo').value.toLowerCase();
-    const creationTime = document.querySelector('#creationTime').value;
-    const deadline = document.querySelector('#deadline').value;
-
-    const rows = document.querySelectorAll('#taskTable tbody tr');
-    rows.forEach(row => {
-        const taskStage = row.children[4].textContent.toLowerCase();
-        const taskCreatedBy = row.children[2].textContent.toLowerCase();
-        const taskAssignedTo = row.children[3].textContent.toLowerCase();
-        const taskCreationDate = row.children[6].textContent;
-        const taskDeadline = row.children[5].textContent;
-
-        const creationDateMatch = creationTime ? taskCreationDate === new Date(creationTime).toLocaleDateString('en-GB') : true;
-        const deadlineMatch = deadline ? taskDeadline === new Date(deadline).toLocaleDateString('en-GB') : true;
-
-        if (
-            (stage === '' || taskStage === stage) &&
-            (createdBy === '' || taskCreatedBy.includes(createdBy)) &&
-            (assignedTo === '' || taskAssignedTo.includes(assignedTo)) &&
-            creationDateMatch &&
-            deadlineMatch
-        ) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
 }
 
 
@@ -348,30 +306,44 @@
         }
 
         function viewTask(taskId) {
-    // Redirect to the task view page using the task ID
-    window.location.href = `/view_task/${taskId}`;
-}
-
-
-        async function logout() {
-            try {
-                const response = await fetch('/logout', { 
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                if (response.ok) {
-                    alert("Successfully logged out.");
-                    window.location.href = '/login'; // Redirect to login page
-                } else {
-                    alert("Logout failed. Please try again.");
-                }
-            } catch (error) {
-                console.error("Error during logout:", error);
-                alert("An error occurred during logout.");
-            }
+            window.location.href = `/view_task/${taskId}`;
         }
 
-        // Load tasks when the page is loaded
+        function filterTasks() {
+            const stage = document.querySelector('#stage').value.toLowerCase();
+            const createdBy = document.querySelector('#createdBy').value.toLowerCase();
+            const assignedTo = document.querySelector('#assignedTo').value.toLowerCase();
+            const creationTime = document.querySelector('#creationTime').value;
+            const deadline = document.querySelector('#deadline').value;
+
+            const rows = document.querySelectorAll('#taskTable tbody tr');
+            rows.forEach(row => {
+                const taskStage = row.children[4].textContent.toLowerCase();
+                const taskCreatedBy = row.children[2].textContent.toLowerCase();
+                const taskAssignedTo = row.children[3].textContent.toLowerCase();
+                const taskCreationDate = row.children[7].textContent;
+                const taskDeadline = row.children[5].textContent;
+
+                const creationDateMatch = creationTime ? taskCreationDate === new Date(creationTime).toLocaleDateString('en-GB') : true;
+                const deadlineMatch = deadline ? taskDeadline === new Date(deadline).toLocaleDateString('en-GB') : true;
+
+                if (
+                    (stage === '' || taskStage === stage) &&
+                    (createdBy === '' || taskCreatedBy.includes(createdBy)) &&
+                    (assignedTo === '' || taskAssignedTo.includes(assignedTo)) &&
+                    creationDateMatch &&
+                    deadlineMatch
+                ) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        async function generateDailyReport() {
+    window.location.href = "/daily_report";
+}
+
         window.onload = loadTasks;
     </script>
 </body>
