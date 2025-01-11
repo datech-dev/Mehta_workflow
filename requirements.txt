@@ -5,6 +5,5 @@ pandas
 datetime
 Python-IO
 secure-smtplib
-email
 xlsxwriter
 gunicorn
