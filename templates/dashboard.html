@@ -138,29 +138,23 @@
 
     <div class="container">
         {% if session['role'] == 'Admin' %}
-<section style="display: flex; gap: 2rem;">
-    <div style="flex: 1;">
-        <h2>Dashboard</h2>
-        <a href="{{ url_for('create_task') }}">
-            <button>Create Task</button>
-        </a>
-    </div>
-    <div style="flex: 1;">
-        <h2>Assign Task</h2>
-        <form id="assignForm">
-            <label for="taskId">Task ID:</label>
-            <input type="number" id="taskId" name="taskId" required>
-            <label for="userId">Assign To (User ID):</label>
-            <input type="number" id="userId" name="userId" required>
-            <button type="button" onclick="assignTask()">Assign</button>
-        </form>
-    </div>
-</section>
-<h2>Generate Reports</h2>
-<div style="display: flex; gap: 1rem;">
-    <button onclick="generateReport()">Download Full Report</button>
-    <button onclick="generateDailyReport()">Download Daily Report</button>
-</div>
+        <section style="display: flex; gap: 2rem;">
+            <div style="flex: 2;">
+                <h2>Dashboard</h2>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <a href="{{ url_for('create_task') }}" style="text-decoration: none;">
+                        <button style="width: 150px; height: 40px;">Create Task</button>
+                    </a>
+                    <button onclick="generateReport()" style="width: 150px; height: 40px;">Download Full Report</button>
+                    <button onclick="generateDailyReport()" style="width: 150px; height: 40px;">Download Daily Report</button>
+                </div>
+            </div>
+        </section>
+        
+
+
+
+
 {% endif %}
 
 
