@@ -4,7 +4,7 @@ werkzeug
 pandas
 datetime
 Python-IO
-smtplib
+secure-smtplib
 email
 xlsxwriter
 gunicorn
