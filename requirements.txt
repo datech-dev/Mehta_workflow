@@ -2,5 +2,9 @@ Flask
 Flask-Session
 werkzeug
 pandas
+datetime
+io
+smtplib
+email
 xlsxwriter
 gunicorn
