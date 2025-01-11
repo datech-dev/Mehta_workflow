@@ -158,7 +158,25 @@
             <p><strong>Stage:</strong> {{ task['stage'] }}</p>
             <p><strong>Deadline:</strong> {{ task['deadline'] }}</p>
         </section>
-
+        <div>
+            <h3>Time Left</h3>
+            {% if time_left %}
+                {% if time_left == "Deadline has passed." %}
+                    <p><strong>{{ time_left }}</strong></p>
+                {% elif time_left == "Invalid deadline format." %}
+                    <p><strong>{{ time_left }}</strong></p>
+                {% else %}
+                    <p>
+                        <strong>{{ time_left.days }} days, 
+                        {{ time_left.hours }} hours, 
+                        and {{ time_left.minutes }} minutes left</strong>
+                    </p>
+                {% endif %}
+            {% else %}
+                <p><strong>No deadline specified.</strong></p>
+            {% endif %}
+        </div>
+        
         <!-- Invoice Status and Update Task -->
         <section>
             <h2>Actions</h2>
@@ -173,6 +191,7 @@
             </div>
             <div class="highlight">
                 <h3>Update Task</h3>
+                {% if is_admin %}
                 <form method="POST">
                     <label for="status">Change Status:</label>
                     <select id="status" name="status">
@@ -184,7 +203,16 @@
                     <textarea id="comment" name="comment" rows="4" placeholder="Enter your comment here..."></textarea>
                     <button type="submit">Update Task</button>
                 </form>
+                {% else %}
+                <p>Only admins can update the task stage.</p>
+                <form method="POST">
+                    <label for="comment">Add Comment:</label>
+                    <textarea id="comment" name="comment" rows="4" placeholder="Enter your comment here..."></textarea>
+                    <button type="submit">Add Comment</button>
+                </form>
+                {% endif %}
             </div>
+            
         </section>
 
         <!-- Invoice Status History -->
