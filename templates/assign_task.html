@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+{% if session['role'] == 'Admin' %}
+<section class="assign-task-section">
+    <h2 class="section-title">Assign Task</h2>
+    <form id="assignForm" class="form-container">
+        <div class="form-group">
+            <label for="taskId">Task ID:</label>
+            <input type="number" id="taskId" name="taskId" required>
+        </div>
+        <div class="form-group">
+            <label for="userId">Assign To (User ID):</label>
+            <input type="number" id="userId" name="userId" required>
+        </div>
+        <button type="button" class="btn-primary" onclick="assignTask()">Assign</button>
+    </form>
+</section>
+{% endif %}
+{% endblock %}

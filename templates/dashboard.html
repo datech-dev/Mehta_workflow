@@ -1,220 +1,141 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mehta & Mehta Law Firm - Task management portal </title>
-    <link rel="stylesheet" href="/static/styles.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f6f9;
-            color: #333;
-        }
+{% extends "base.html" %}
 
-        header {
-            background-color: #007BFF;
-            color: #fff;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+{% block content %}
+<style>
+    body{
+        overflow: hidden;
+    }
+        .view-icon {
+        font-size: 18px;
+        color: #49458a;
+        cursor: pointer;
+        margin: 0 10px;
+    }
 
-        header h1 {
-            margin: 0;
-            font-size: 1.5rem;
-        }
+    .view-icon:hover {
+        color: #33416e;
+    }
 
-        header div span {
-            margin-right: 1rem;
-        }
+    /* Styling for the table container */
+    .task-table {
+        width: 100%;
+        margin: auto;
+        padding: 1rem;
+        box-sizing: border-box;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        max-height: 400px; /* Add a maximum height to make the table scrollable */ 
+        overflow-y: scroll;
+    }
 
-        header button {
-            background-color: #FF4136;
-            color: #fff;
-            border: none;
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            border-radius: 4px;
-        }
+    /* Styling for the table heading */
+    .task-table h2 {
+        text-align: center;
+        font-size: 24px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 20px;
+        
+    }
 
-        header button:hover {
-            background-color: #E33428;
-        }
+    /* Styling for the table */
+    .styled-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: auto;
+        background-color: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+    }
 
-        section {
-            background-color: #fff;
-            margin: 1rem auto;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 900px;
-        }
+    /* Styling for table headers */
+    .styled-table th,
+    .styled-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
 
-        section h2 {
-            margin-top: 0;
-        }
+    .styled-table th {
+        background-color: #2a87d7;;
+        color: #252323;
+    }
 
-        form label {
-            font-weight: bold;
-            display: block;
-            margin-bottom: 0.5rem;
-        }
+    /* Alternate row coloring */
+    .styled-table tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
 
-        form input, form textarea, form select {
-            width: 100%;
-            padding: 0.5rem;
-            margin-bottom: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1rem;
-        }
+    /* Hover effect */
+    .styled-table tr:hover {
+        background-color: #e9ecef;
+    }
 
-        form button {
-            background-color: #007BFF;
-            color: #fff;
-            border: none;
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 1rem;
-        }
+    /* Styling for action icons */
+    .styled-table td.actions {
+        text-align: center;
+    }
 
-        form button:hover {
-            background-color: #0056b3;
-        }
+    .styled-table td.actions i {
+        font-size: 18px;
+        margin: 0 10px;
+        cursor: pointer;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
+    .styled-table td.actions i:hover {
+        color: #007bff;
+    }
 
-        table th, table td {
-            text-align: left;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-        }
 
-        table th {
-            background-color: #f4f6f9;
-            font-weight: bold;
-        }
 
-        table tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        table tr:hover {
-            background-color: #f1f1f1;
-        }
-
-        button {
-            cursor: pointer;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-        }
-
-        .container {
-            padding: 1rem;
-        }
-
-        .actions button {
-            margin-right: 0.5rem;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>Task Management Dashboard</h1>
-        <div>
-            <span>Welcome, {{ session['user'] }} ({{ session['role'].capitalize() }})</span>
-            <a href="{{ url_for('logout') }}" class="logout-button">Logout</a>
+</style>
+<section class="content">
+    <div class="cards">
+        <div class="card">
+            <h3>Total Tasks</h3>
+            <p>50</p>
         </div>
-    </header>
-
-    <div class="container">
-        {% if session['role'] == 'Admin' %}
-        <section style="display: flex; gap: 2rem;">
-            <div style="flex: 2;">
-                <h2>Dashboard</h2>
-                <div style="display: flex; gap: 1rem; align-items: center;">
-                    <a href="{{ url_for('create_task') }}" style="text-decoration: none;">
-                        <button style="width: 150px; height: 40px;">Create Task</button>
-                    </a>
-                    <button onclick="generateReport()" style="width: 150px; height: 40px;">Download Full Report</button>
-                    <button onclick="generateDailyReport()" style="width: 150px; height: 40px;">Download Daily Report</button>
-                </div>
-            </div>
-        </section>
-        
-
-
-
-
-{% endif %}
-
-
-        <section>
-            <h2>Filter Tasks</h2>
-            <form id="filterForm">
-                <label for="stage">Stage:</label>
-                <select id="stage" name="stage">
-                    <option value="">All</option>
-                    <option value="     ">Allotted</option>
-                    <option value="Assigned">Assigned</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Blocked">Blocked</option>
-                    <option value="Completed">Completed</option>
-                </select>
-                <label for="createdBy">Created By:</label>
-                <input type="text" id="createdBy" name="createdBy" placeholder="Enter creator name">
-                <label for="assignedTo">Assigned To:</label>
-                <input type="text" id="assignedTo" name="assignedTo" placeholder="Enter assignee name">
-                <label for="creationTime">Creation Date:</label>
-                <input type="date" id="creationTime" name="creationTime">
-                <label for="deadline">Deadline:</label>
-                <input type="date" id="deadline" name="deadline">
-                <button type="button" onclick="filterTasks()">Filter</button>
-            </form>
-        </section>
-
-        <section>
-            <h2>All Tasks</h2>
-            <div style="overflow-x: auto;">
-                <table id="taskTable">
-                    <thead>
-                        <tr>
-                            <th>Task Name</th>
-                            <th>Description</th>
-                            <th>Created By</th>
-                            <th>Assigned To</th>
-                            <th>Stage</th>
-                            <th>Deadline</th>
-                            <th>Time Left</th>
-                            <th>Creation Time</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Tasks will be dynamically populated here -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
-        
-        
+        <div class="card">
+            <h3>Completed</h3>
+            <p>30</p>
+        </div>
+        <div class="card">
+            <h3>Pending</h3>
+            <p>20</p>
+        </div>
     </div>
 
-    <script>
-        async function loadTasks() {
+    <div class="task-table">
+        <h2>All Tasks</h2>
+        <table id="taskTable" class="styled-table">
+            <thead>
+                <tr>
+                    <th>Task Name</th>
+                    <th>Description</th>
+                    <th>Created By</th>
+                    <th>Assigned To</th>
+                    <th>Stage</th>
+                    <th>Deadline</th>
+                    <th>Time Left</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Tasks will be dynamically populated -->
+            </tbody>
+        </table>
+    </div>
+    
+</section>
+
+
+<script>
+    async function loadTasks() {
     try {
         const response = await fetch('/get_tasks', {
             method: 'GET',
-            credentials: 'same-origin' // Ensures session cookie is included
+            credentials: 'same-origin'
         });
 
         if (!response.ok) {
@@ -223,12 +144,24 @@
 
         const tasks = await response.json();
         const tableBody = document.querySelector('#taskTable tbody');
-        tableBody.innerHTML = ''; // Clear existing rows
+        tableBody.innerHTML = '';
 
         if (tasks.length === 0) {
             const row = document.createElement('tr');
-            row.innerHTML = `<td colspan="9">No tasks found</td>`;
-            tableBody.appendChild(row);
+            row.innerHTML = `
+    <td>${task.name || 'Unnamed Task'}</td>
+    <td>${task.description || 'No description provided'}</td>
+    <td>${task.created_by || 'Unknown'}</td>
+    <td>${task.assigned_to || 'Unassigned'}</td>
+    <td>${task.stage || 'Not Specified'}</td>
+    <td>${task.deadline ? new Date(task.deadline).toLocaleString() : 'No deadline set'}</td>
+    <td>${timeLeft}</td>
+    <td>
+        <i class="fas fa-eye view-icon" onclick="viewTask(${task.id})">
+    </td>
+        
+`;
+tableBody.appendChild(row);
             return;
         }
 
@@ -249,26 +182,17 @@
                 }
             }
 
-            const creationDate = task.creation_time
-                ? new Date(task.creation_time).toLocaleDateString('en-GB') // Format as DD/MM/YYYY
-                : 'No creation time';
-
-            const deadlineDate = task.deadline
-                ? new Date(task.deadline).toLocaleDateString('en-GB') // Format as DD/MM/YYYY
-                : 'No deadline set';
-
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${task.name || 'Unnamed Task'}</td>
                 <td>${task.description || 'No description provided'}</td>
                 <td>${task.created_by || 'Unknown'}</td>
                 <td>${task.assigned_to || 'Unassigned'}</td>
-                <td>${task.stage}</td>
-                <td>${deadlineDate}</td>
+                <td>${task.stage || 'Not Specified'}</td>
+                <td>${task.deadline ? new Date(task.deadline).toLocaleString() : 'No deadline set'}</td>
                 <td>${timeLeft}</td>
-                <td>${creationDate}</td>
                 <td>
-                    <button onclick="viewTask(${task.id})">View</button>
+                    <i class="fas fa-eye view-icon" onclick="viewTask(${task.id})">
                 </td>
             `;
             tableBody.appendChild(row);
@@ -278,67 +202,28 @@
         alert("Unable to load tasks. Please try again.");
     }
 }
-
-
-        async function assignTask() {
-            const taskId = document.querySelector('#taskId').value;
-            const userId = document.querySelector('#userId').value;
-
-            const response = await fetch(`/assign_task/${taskId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ assigned_to: userId })
-            });
-
-            const result = await response.json();
-            alert(result.message);
-            loadTasks();
-        }
-
-        async function generateReport() {
-            window.location.href = "/export_tasks";
-        }
-
-        function viewTask(taskId) {
-            window.location.href = `/view_task/${taskId}`;
-        }
-
-        function filterTasks() {
-            const stage = document.querySelector('#stage').value.toLowerCase();
-            const createdBy = document.querySelector('#createdBy').value.toLowerCase();
-            const assignedTo = document.querySelector('#assignedTo').value.toLowerCase();
-            const creationTime = document.querySelector('#creationTime').value;
-            const deadline = document.querySelector('#deadline').value;
-
-            const rows = document.querySelectorAll('#taskTable tbody tr');
-            rows.forEach(row => {
-                const taskStage = row.children[4].textContent.toLowerCase();
-                const taskCreatedBy = row.children[2].textContent.toLowerCase();
-                const taskAssignedTo = row.children[3].textContent.toLowerCase();
-                const taskCreationDate = row.children[7].textContent;
-                const taskDeadline = row.children[5].textContent;
-
-                const creationDateMatch = creationTime ? taskCreationDate === new Date(creationTime).toLocaleDateString('en-GB') : true;
-                const deadlineMatch = deadline ? taskDeadline === new Date(deadline).toLocaleDateString('en-GB') : true;
-
-                if (
-                    (stage === '' || taskStage === stage) &&
-                    (createdBy === '' || taskCreatedBy.includes(createdBy)) &&
-                    (assignedTo === '' || taskAssignedTo.includes(assignedTo)) &&
-                    creationDateMatch &&
-                    deadlineMatch
-                ) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        }
-        async function generateDailyReport() {
-    window.location.href = "/daily_report";
+function viewTask(taskId) {
+    // Redirect to the task view page using the task ID
+    window.location.href = `/view_task/${taskId}`;
 }
 
-        window.onload = loadTasks;
-    </script>
-</body>
-</html>
+// Call loadTasks on page load
+document.addEventListener('DOMContentLoaded', loadTasks);
+
+
+
+</script>
+{% endblock %}
+
+
+<script>
+    function viewTask(taskId) {
+    if (!taskId) {
+        alert("Invalid task ID.");
+        return;
+    }
+    window.location.href = `/view/${taskId}`;
+}
+
+
+</script>

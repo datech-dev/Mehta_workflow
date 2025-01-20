@@ -1,209 +1,161 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Create Task</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #e6eaf2;
-        margin: 0;
-        padding: 0;
-      }
-
-      header {
-        background-color: #2c3e50;
-        color: white;
-        padding: 20px 0;
-        text-align: center;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      }
-
-      header h1 {
-        font-size: 28px;
-        margin: 0;
-        font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        color: #ffffff;
-      }
-
-      header p {
-        font-size: 14px;
-        margin: 5px 0 0;
-        font-style: italic;
-        color: #d1d1d1;
-      }
-
-      .container {
-        max-width: 900px;
-        margin: 40px auto;
-        padding: 20px;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      }
-
-      h1 {
-        font-size: 22px;
-        color: #333;
-        margin-bottom: 20px;
-      }
-
-      .form-group {
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 20px;
-      }
-
-      .form-group label {
-        display: block;
-        font-weight: bold;
-        margin-bottom: 5px;
-        color: #555;
-      }
-
-      .form-group input,
-      .form-group textarea,
-      .form-group select {
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .popup {
+        position: fixed;
+        top: 0;
+        left: 0;
         width: 100%;
-        padding: 10px;
-        font-size: 14px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-      }
-
-      .form-group textarea {
-        resize: none;
-      }
-
-      .buttons {
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
         display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-      }
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
 
-      .buttons button {
-        padding: 10px 20px;
-        font-size: 14px;
+    .popup-content {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .popup-content p {
+        margin-bottom: 20px;
+        font-size: 16px;
+    }
+
+    .popup-content button {
+        background: #007bff;
+        color: #fff;
         border: none;
+        padding: 10px 20px;
         border-radius: 4px;
         cursor: pointer;
-      }
+    }
 
-      .buttons .submit {
-        background-color: #4caf50;
+    .popup-content button:hover {
+        background: #0056b3;
+    }
+    /* Common styling for gradient buttons */
+    /* Container for buttons */
+    .button-container {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px; /* Add some space above the buttons */
+    }
+
+    /* Common styling for gradient buttons */
+    .gradient-btn {
+        padding: 10px 20px;
+        font-size: 16px;
+        font-weight: bold;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: background 0.3s ease, box-shadow 0.3s ease;
+        text-transform: uppercase;
         color: white;
-      }
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
 
-      .buttons .cancel {
-        background-color: #d9d9d9;
-        color: black;
-      }
+    /* Gradient colors for the submit button */
+    .submit.gradient-btn {
+        background: linear-gradient(45deg, #6a11cb, #2575fc);
+    }
 
-      .notification {
-        background-color: #d4edda;
-        color: #155724;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
-        border: 1px solid #c3e6cb;
-        border-radius: 4px;
-        text-align: center;
-      }
+    .submit.gradient-btn:hover {
+        background: linear-gradient(45deg, #3b8dff, #4b14c6);
+    }
 
-      .error-message {
-        color: red;
-        margin-top: 1rem;
-        text-align: center;
-      }
-    </style>
-  </head>
-  <body>
-    <header>
-      <h1>Mehta & Mehta</h1>
-      <p>Delivering Excellence in Every Task</p>
-    </header>
+    /* Gradient colors for the cancel button */
+    .cancel.gradient-btn {
+        background: linear-gradient(45deg, #ff5f6d, #ffc371);
+    }
 
-    <div class="container">
-      <h1>Create Task</h1>
-      <div class="notification">
-        Task creation will send an email notification to the assigned user.
-      </div>
-      <form id="createTaskForm" method="POST">
+    .cancel.gradient-btn:hover {
+        background: linear-gradient(45deg, #ff3e41, #ffb347);
+    }
+
+
+</style>
+{% if session['role'] == 'Admin' %}
+<section class="create-task-section">
+    <h2 class="section-title">Create Task</h2>
+    <form id="createTaskForm" class="form-container">
         <div class="form-group">
-          <label for="taskName">Task Name:</label>
-          <input
-            type="text"
-            id="taskName"
-            name="name"
-            placeholder="Enter task name"
-            required
-          />
+            <label for="taskName">Task Name:</label>
+            <input type="text" id="taskName" name="taskName" placeholder="Enter task name" required>
+        </div>
+        <div class="form-group">
+            <label for="taskDescription">Description:</label>
+            <textarea id="taskDescription" name="description" rows="4" placeholder="Enter task description" required></textarea>
+        </div>
+        <div class="form-group">
+            <label for="deadline">Deadline:</label>
+            <input type="datetime-local" id="deadline" name="deadline" required>
         </div>
 
         <div class="form-group">
-          <label for="assignedTo">Assign to:</label>
-          <select id="assignedTo" name="assigned_to" required>
-            <option value="">Select a User</option>
-            {% for user in users %} {% if user['role'] == 'Employee' %}
-            <option value="{{ user['username'] }}">
-              {{ user['username'] }}
-            </option>
-            {% endif %} {% endfor %}
-          </select>
+            <label for="assignedTo">Assign to:</label>
+            <select id="assignedTo" name="assigned_to" required>
+              <option value="">Select a User</option>
+              {% for user in users %} {% if user['role'] == 'Employee' %}
+              <option value="{{ user['username'] }}">
+                {{ user['username'] }}
+              </option>
+              {% endif %} {% endfor %}
+            </select>
         </div>
-
         <div class="form-group">
-          <label for="taskDescription">Description:</label>
-          <textarea
-            id="taskDescription"
-            name="description"
-            rows="4"
-            placeholder="Enter task description"
-            required
-          ></textarea>
+            <label for="Clientname">Client name:</label>
+            <select id="Clientname" name="clientname" required>
+                <option value="">Select a client</option>
+                {% for client in clients %}
+                <option value="{{ client['Client_Name'] }}">
+                    {{ client['Client_Name'] }}
+                </option>
+                {% endfor %}
+            </select>
         </div>
-
-        <div class="form-group">
-          <label for="deadline">Deadline:</label>
-          <input type="datetime-local" id="deadline" name="deadline" required />
+        
+        <div class="button-container">
+            <button type="submit" class="submit gradient-btn">Create Task</button>
+            <button type="button" class="cancel gradient-btn">Cancel</button>
         </div>
+        
 
-        <div class="buttons">
-          <button type="submit" class="submit">Create Task</button>
-          <button type="button" class="cancel">Cancel</button>
-        </div>
-      </form>
-
-      <div class="error-message" id="error-message"></div>
-    </div>
-
-    <script>
-      document
-        .getElementById("createTaskForm")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
-          const formData = new FormData(this);
-          fetch("/create_task", {
-            method: "POST",
-            body: formData,
-          })
-            .then((response) => {
-              if (response.ok) {
-                window.location.href = "/dashboard"; // Redirect on success
-              } else {
-                document.getElementById("error-message").innerText =
-                  "Failed to create task. Please try again.";
-              }
-            })
-            .catch((error) => {
-              console.error("Error:", error);
+    </form>
+    <div class="error-message" id="error-message"></div>
+</section>
+{% endif %}
+<script>
+    document
+      .getElementById("createTaskForm")
+      .addEventListener("submit", function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        fetch("/create_task", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => {
+            if (response.ok) {
+                window.location.href = "/dashboard";
+            } else {
               document.getElementById("error-message").innerText =
-                "An error occurred. Please try again.";
-            });
-        });
-    </script>
-  </body>
-</html>
+                "Failed to create task. Please try again.";
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            document.getElementById("error-message").innerText =
+              "An error occurred. Please try again.";
+          });
+      });
+      
+
+</script>
+{% endblock %}

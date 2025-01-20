@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+{% if session['role'] == 'Admin' %}
+<section class="report-section">
+    <h2 class="section-title">Generate Report</h2>
+    <div class="report-content">
+        <p>Click the button below to generate and download the latest task report.</p>
+        <button class="btn-primary" onclick="generateReport()">Download Report</button>
+    </div>
+</section>
+{% endif %}
+<script>
+    async function generateReport() {
+    window.location.href = "/export_tasks";
+}
+</script>
+
+{% endblock %}

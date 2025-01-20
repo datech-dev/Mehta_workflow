@@ -1,0 +1,595 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    body{
+        overflow: hidden;
+    }
+    .view-button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .view-button:hover {
+        background-color: #45a049; /* Slightly darker green when hovering */
+    }
+    /* General styling for the client table */
+.client-table {
+    width: 100%; /* Ensure the card spans the container */
+    overflow-x: auto; /* Add horizontal scrolling for wider tables */
+    padding: 1rem; /* Add padding for better spacing */
+    box-sizing: border-box;
+    background-color: #fff; /* Ensure background matches the card */
+    border-radius: 8px; /* Add rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+    max-height: 400px; /* Add a maximum height to make the table scrollable */ 
+    overflow-y: scroll;
+}
+
+/* Styling for the heading */
+.client-table h2 {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Styling for the table */
+.styled-table {
+    width: 100%; /* Make the table span the card width */
+    border-collapse: collapse;
+    table-layout: auto; /* Adjust column widths automatically */
+}
+
+.styled-table th,
+.styled-table td {
+    padding: 10px;
+    text-align: left; /* Align text to the left */
+    border: 1px solid #ddd;
+}
+
+.styled-table th {
+    background-color: #5a9bd5; /* Set header background color */
+    color: #fff; /* Set header text color */
+}
+
+.styled-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.styled-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Status column color */
+.styled-table td.status {
+    text-transform: capitalize;
+}
+
+
+
+/* Styling for the actions column */
+.styled-table td.actions {
+    text-align: center;
+}
+
+.styled-table td.actions i {
+    font-size: 18px;
+    margin: 0 10px;
+    cursor: pointer;
+}
+
+.styled-table td.actions i:hover {
+    color: #007bff;
+}
+
+/* Table responsiveness */
+@media screen and (max-width: 768px) {
+    .styled-table {
+        font-size: 14px;
+    }
+
+    .styled-table th,
+    .styled-table td {
+        padding: 10px 8px;
+    }
+
+    .client-table {
+        padding: 15px;
+    }
+}
+.add-client-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: linear-gradient(90deg, #f9a825, #ff4081); /* Gradient colors */
+    color: white;
+    font-family: 'Arial', sans-serif;
+    font-weight: bold;
+    font-size: 14px;
+    border: none;
+    border-radius: 50px; /* Rounded edges for pill-shaped button */
+    padding: 8px 16px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.add-client-btn .button-text {
+    text-transform: uppercase;
+}
+
+.add-client-btn .button-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    color: #333;
+    font-size: 14px;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* Icon shadow */
+}
+
+.add-client-btn:hover {
+    transform: scale(1.05); /* Slightly enlarge the button on hover */
+    box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.3); /* Enhance shadow on hover */
+}
+
+
+/* Modal Styling */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    overflow: auto;
+    padding-top: 60px;
+}
+
+/* Modal Content */
+.modal-content {
+    background-color: #fff;
+    margin: 0 auto;
+    padding: 20px;
+    border-radius: 12px;
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.3s ease;
+    font-family: 'Arial', sans-serif;
+    position: relative;
+    top: 0;
+}
+
+/* Close Button */
+.close {
+    color: #aaa;
+    font-size: 24px;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.close:hover {
+    color: #000;
+}
+
+/* Modal Title */
+.modal-title {
+    text-align: center;
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+/* Form Styling */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #5a9bd5;
+    box-shadow: 0 0 5px rgba(90, 155, 213, 0.5);
+    outline: none;
+}
+
+/* Submit Button */
+.submit-btn {
+    background-color: #4CAF50;
+    color: white;
+    font-size: 16px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.submit-btn:hover {
+    background-color: #45a049;
+}
+
+/* Success Message */
+.success-message {
+    margin-top: 20px;
+    color: #4CAF50;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+
+</style>
+
+<section class="content">
+    <div class="cards">
+        <div class="card">
+            <h3>Total Clients</h3>
+            <p>100</p>
+        </div>
+        <div class="card">
+            <h3>Active Clients</h3>
+            <p>75</p>
+        </div>
+        <div class="card">
+            <h3>Inactive Clients</h3>
+            <p>25</p>
+        </div>
+    </div>
+    
+
+    <!-- Popup Modal Form -->
+    <div id="clientModal" class="modal">
+        <div class="modal-content">
+            <span id="closeModal" class="close">&times;</span>
+            <h3 class="modal-title">Add Client</h3>
+            <form id="clientForm">
+                <div class="form-group">
+                    <label for="clientName">Client_Name</label>
+                    <input type="text" id="clientName" name="clientName" placeholder="Enter client's name" required>
+                </div>
+    
+                <div class="form-group">
+                    <label for="Group">Group</label>
+                    <input type="text" id="Group" name="Group" placeholder="Enter group" required>
+                </div>
+    
+                <div class="form-group">
+                    <label for="Type">Type</label>
+                    <select id="Type" name="Type" required>
+                        <option value="" disabled selected>Select type</option>
+                        <option value="Direct Tax">Direct Tax</option>
+                        <option value="Indirect Tax">Indirect Tax</option>
+                        <option value="Corporate">Corporate</option>
+                        <option value="Civil">Civil</option>
+                        <option value="Misc">Misc</option>
+                    </select>
+                </div>
+    
+                <div class="form-group">
+                    <label for="year">Assessment_Year</label>
+                    <input type="textr" id="year" name="year" min="1900" max="2100" placeholder="Enter assessment year" required>
+                </div>
+    
+                <div class="form-group">
+                    <label for="Work">Work</label>
+                    <input type="text" id="Work" name="Work" placeholder="Enter work details" required>
+                </div>
+    
+                <div class="form-group">
+                    <label for="Demand">Demand/Quantum</label>
+                    <input type="text" id="Demand" name="Demand" placeholder="Enter demand or quantum" required>
+                </div>
+    
+                <div class="form-group">
+                    <label for="Department">Department</label>
+                    <select id="Department" name="Department" required>
+                        <option value="" disabled selected>Select department</option>
+                        <option value="CIT">CIT</option>
+                        <option value="ITAT">ITAT</option>
+                        <option value="HC">HC</option>
+                        <option value="GST(OA)">GST(OA)</option>
+                        <option value="IT(OA)">IT(OA)</option>
+                        <option value="OTHERS">OTHERS</option>
+                    </select>
+                </div>
+    
+                <button type="submit" class="submit-btn">Add Client</button>
+            </form>
+            <div id="successMessage" class="success-message" style="display:none;">Client Added Successfully!</div>
+        </div>
+    </div>
+    
+    
+    <!-- Client Table -->
+    <div class="client-table">
+        <h2>All Clients</h2>
+        <!-- <button id="addClientBtn" class="add-client-btn">Add Client</button> -->
+        <button id="addClientBtn" class="add-client-btn">
+            <span class="button-text">Add Client</span>
+            <span class="button-icon"><i class="fa-regular fa-square-plus"></i></span> <!-- Menu icon -->
+        </button>
+        
+        <table id="clientTable" class="styled-table">
+            <thead>
+                <tr>
+                    <th>Client_Name</th>
+                    <th>Group:</th>
+                    <th>Type</th>
+                    <th>Assessment_Year</th>
+                    <th>Work</th>
+                    <th>Demand/Quantum</th>
+                    <th>Department</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Clients will be dynamically populated -->
+            </tbody>
+        </table>
+    </div>
+
+    
+    
+</section>
+
+<script>
+    async function clients() {
+    window.location.href = "/client";
+}
+    // Get modal, button, and form elements
+const modal = document.getElementById("clientModal");
+const btn = document.getElementById("addClientBtn");
+const closeModal = document.getElementById("closeModal");
+const form = document.getElementById("clientForm");
+const successMessage = document.getElementById("successMessage");
+const clientTableBody = document.querySelector("#clientTable tbody");
+
+// Load existing clients from localStorage and populate the table
+// Load clients from CSV via the backend and populate the table
+
+
+// Add a client to the table dynamically
+function addClientToTable(client) {
+    console.log("Client object received:", client); // Debug the structure of the client object
+
+    const newRow = document.createElement("tr");
+
+    newRow.innerHTML = `
+        <td>${client['Client_Name'] || 'N/A'}</td>
+        <td>${client['Group'] || 'N/A'}</td>
+        <td>${client['Type'] || 'N/A'}</td>
+        <td>${client['Assessment_Year'] || 'N/A'}</td>
+        <td>${client['Work'] || 'N/A'}</td>
+        <td>${client['Demand'] || 'N/A'}</td>
+        <td>${client['Department'] || 'N/A'}</td>
+        <td class="actions">
+            <i class="fas fa-edit"></i>
+            <i class="fas fa-trash-alt" onclick="deleteClient('${client['Client_Name'] || ''}')"></i>
+        </td>
+    `;
+
+    clientTableBody.appendChild(newRow);
+}
+
+
+async function loadClients() {
+    try {
+        const response = await fetch('/get-clients');
+        if (!response.ok) {
+            throw new Error('Failed to fetch clients');
+        }
+
+        const clients = await response.json();
+
+        // Convert the object to an array
+        const clientsArray = Object.values(clients);
+
+        // Debug: Log the converted array
+        console.log("Converted clients array:", clientsArray);
+
+        // Clear the table
+        clientTableBody.innerHTML = "";
+
+        // Populate the table
+        clientsArray.forEach(client => addClientToTable(client));
+
+        console.log("Final table body:", clientTableBody);
+
+    } catch (error) {
+        console.error('Error loading clients:', error);
+    }
+}
+
+
+async function saveClientsToCSV() {
+    const clients = JSON.parse(localStorage.getItem("clients")) || [];
+    try {
+        const response = await fetch('/save-clients', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ clients }),
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            alert(result.message); // Notify success
+        } else {
+            alert(`Error: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('Error saving clients:', error);
+        alert('An error occurred while saving clients.');
+    }
+}
+
+// Add a client to the table dynamically    
+
+// Open the modal when the "Add Client" button is clicked
+btn.onclick = function() {
+    modal.style.display = "block";
+}
+
+// Close the modal when the "X" is clicked
+closeModal.onclick = function() {
+    modal.style.display = "none";
+    successMessage.style.display = "none"; // Hide success message
+}
+
+// Close the modal if the user clicks outside of the modal
+window.onclick = function(event) {
+    if (event.target == modal) {
+        return
+    }
+}
+
+// Handle form submission
+form.onsubmit = async function (event) {
+    event.preventDefault(); // Prevent form submission
+
+    // Get form data
+    const clientName = document.getElementById("clientName").value;
+    const Group = document.getElementById("Group").value;
+    const Type = document.getElementById("Type").value;
+    const year = document.getElementById("year").value;
+    const Work = document.getElementById("Work").value;
+    const Demand = document.getElementById("Demand").value;
+    const Department = document.getElementById("Department").value;
+
+    // Create a new client object
+    const newClient = {
+        clientName,
+        Group,
+        Type,
+        year,
+        Work,
+        Demand,
+        Department
+    };
+
+    // Add the new client to the table
+    addClientToTable(newClient);
+
+    // Add the new client to localStorage
+    const clients = JSON.parse(localStorage.getItem("clients")) || [];
+    clients.push(newClient);
+    localStorage.setItem("clients", JSON.stringify(clients));
+
+    // Send the new client data to the backend to append to CSV
+    try {
+        const response = await fetch('/add-client', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newClient),
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            console.log(result.message); // Log success message
+        } else {
+            console.error(`Error: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('Error saving client to CSV:', error);
+    }
+
+    // Display success message
+    successMessage.style.display = "block";
+
+    // Clear form fields
+    form.reset();
+
+    // Close the modal after 1 second
+    setTimeout(function () {
+        modal.style.display = "none";
+    }, 1000); // 1 second delay
+};
+
+
+// Delete a client from the table and localStorage
+async function deleteClient(clientName) {
+    try {
+        const response = await fetch('/delete-client', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ clientName }),
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+            alert(result.message); // Notify success
+            loadClients(); // Reload clients from CSV
+        } else {
+            alert(`Error: ${result.error}`);
+        }
+    } catch (error) {
+        console.error('Error deleting client:', error);
+        alert('An error occurred while deleting the client.');
+    }
+}
+
+
+// Load clients when the page is loaded
+window.onload = loadClients;
+
+
+</script>
+
+
+{% endblock %}

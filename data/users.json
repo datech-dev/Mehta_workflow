@@ -1,1 +1,20 @@
-
+[
+    {
+        "username": "dhinesh_admin",
+        "email": "dhineshraja@live.com",
+        "password": "pbkdf2:sha256:260000$NEDTX6CH27gVtGg9$6672d8c7128411da648c25895e00e00b8f0b583f25791d4d462a05bc646271fd",
+        "role": "Admin"
+    },
+    {
+        "username": "dhinesh_2",
+        "email": "datechsinfo@gmail.com",
+        "password": "pbkdf2:sha256:260000$Zx0S3OvqmiX3VV1n$03b04e0761ec57c52f46f82dd8faf4fb8d3cd458c5966afaa683ab1991515098",
+        "role": "Employee"
+    },
+    {
+        "username": "rawlla",
+        "email": "rawllasherif15@gmail.com",
+        "password": "scrypt:32768:8:1$L0IaRFA8DCBgJTB7$547de1ac392c7f301f86649e477d589c5d526399617393737b2c0ca8a8cd88d6bb7e73604284945bdfa9cfc6f5e382eaac2d9a044d3849b65ea39509d0f5fcd6",
+        "role": "Admin"
+    }
+]
