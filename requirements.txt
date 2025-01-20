@@ -3,6 +3,7 @@ Flask-Session
 werkzeug
 pandas
 datetime
+Python-IO
+secure-smtplib
 xlsxwriter
 gunicorn
-python-csv
