@@ -16,5 +16,35 @@
         "email": "rawllasherif15@gmail.com",
         "password": "scrypt:32768:8:1$L0IaRFA8DCBgJTB7$547de1ac392c7f301f86649e477d589c5d526399617393737b2c0ca8a8cd88d6bb7e73604284945bdfa9cfc6f5e382eaac2d9a044d3849b65ea39509d0f5fcd6",
         "role": "Admin"
+    },
+    {
+        "username": "rawlla11",
+        "email": "rawllasherif15@gmail.com",
+        "password": "scrypt:32768:8:1$vniXq56n9ghYn7EF$ebddae56fa27a09fdf8fdac938e05024f4b27602cf93b83fc219b238db38294d66ffbb87bbdf1f98a69435b99f45f7c0cc987ccaea4ebda76d4ceba24652ce40",
+        "role": "Employee"
+    },
+    {
+        "username": "sherif",
+        "email": "rawllasherif15@gmail.com",
+        "password": "scrypt:32768:8:1$pLFQfBSZEl98GcnZ$39cecab013567cad2d9d44ed1f7aba113556addf657e255601d309c93498261f89b6f9e5548e3a7db043e22b846048e7ae06fc099de6c2a3798bbe9f9cc50266",
+        "role": "Employee"
+    },
+    {
+        "username": "mohamed",
+        "email": "rawllasherif15@gmail.com",
+        "password": "scrypt:32768:8:1$8MBVCQ7GZ6236r6M$d1b5339b5b1aec5ffb156b76f123f36957c191992a63c10071349cb482f6316bb1c48ee62a5b6e08454f893f9b58782230c48a25a310b377cdd7defa832e5489",
+        "role": "Employee"
+    },
+    {
+        "username": "john",
+        "email": "Contact@datechnologies.cloud",
+        "password": "scrypt:32768:8:1$LKvGWsTjQRqlKgvz$81d7aa0ce7d89689bf4948c46494fb3df4496862d9289d4328d9c06ebd308d18c409de38f7d1dd94b9a35b8b2a9ae5fc7467a2206d3ca4b8a0382dbd995d257a",
+        "role": "Employee"
+    },
+    {
+        "username": "John",
+        "email": "johnsamuellewis8228@gmail.com",
+        "password": "scrypt:32768:8:1$SlZW5jubgZkGwppq$38e945386b6c20f889ee4ce36da678bd9f3681ee992cbe549617b0e89e17641107099db006bbae568f725fabb2252fc06736a9677c3ca7a2fc3508f7885c5469",
+        "role": "Employee"
     }
 ]

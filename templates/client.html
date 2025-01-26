@@ -5,6 +5,34 @@
     body{
         overflow: hidden;
     }
+    .cards {
+        display: flex;
+        justify-content: space-around;
+        margin: 20px 0;
+        gap: 20px;
+    }
+
+    .card {
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        flex: 1;
+    }
+
+    .card h3 {
+        margin-bottom: 10px;
+        font-size: 18px;
+        color: #333;
+    }
+
+    .card p {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2a87d7;
+    }
     .view-button {
         background-color: #4CAF50;
         color: white;
@@ -275,15 +303,15 @@
     <div class="cards">
         <div class="card">
             <h3>Total Clients</h3>
-            <p>100</p>
+            <p id="totalClient">0</p>
         </div>
         <div class="card">
             <h3>Active Clients</h3>
-            <p>75</p>
+            <p id="activeClient">0</p>
         </div>
         <div class="card">
             <h3>Inactive Clients</h3>
-            <p>25</p>
+            <p id="">25</p>
         </div>
     </div>
     

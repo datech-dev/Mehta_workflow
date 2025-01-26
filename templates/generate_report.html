@@ -1,18 +1,350 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+/* General Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8fafc; /* Light background for better contrast */
+}
+
+.report-section {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.section-title {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #333333;
+    margin-bottom: 1rem;
+}
+
+.section-description {
+    font-size: 1rem;
+    color: #666666;
+    margin-bottom: 2rem;
+}
+
+/* Card Styles */
+.button-group {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+}
+
+.button-card {
+    flex: 1;
+    padding: 1.5rem;
+    background-color: #f1f5f9; /* Light card background */
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.button-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.button-card h3 {
+    font-size: 1.2rem;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+
+.button-card p {
+    font-size: 0.95rem;
+    color: #374151;
+    margin-bottom: 1rem;
+}
+
+/* Button Group for Daily Report */
+.button-group-daily {
+    margin-top: 1rem; /* Space between the text and buttons */
+    display: flex;
+    flex-direction: column; /* Stack the button and link vertically */
+    gap: 0.5rem; /* Space between the button and the link */
+}
+
+/* Button Styles */
+.btn-primary, .btn-secondary {
+    display: inline-block;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    font-weight: bold;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.btn-primary {
+    background-color: #2563eb; /* Blue button */
+}
+
+.btn-primary:hover {
+    background-color: #1d4ed8;
+    transform: scale(1.05);
+}
+
+.btn-secondary {
+    background-color: #10b981; /* Green button */
+}
+
+.btn-secondary:hover {
+    background-color: #059669;
+    transform: scale(1.05);
+}
+
+/* Add Filter Link */
+.add-filter {
+    display: inline-block;
+    color: #2563eb;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.add-filter:hover {
+    text-decoration: underline;
+}
+
+/* Modal Styling */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5); /* Black background with transparency */
+}
+
+.modal-content {
+    background-color: #ffffff;
+    margin: 10% auto;
+    padding: 2rem;
+    border: none;
+    border-radius: 12px;
+    width: 50%;
+    text-align: left;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    animation: slide-down 0.3s ease-in-out;
+}
+
+/* Slide-down animation for the modal */
+@keyframes slide-down {
+    from {
+        transform: translateY(-50%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+}
+
+/* Filter Form Styling */
+.filter-group {
+    margin-bottom: 1.5rem;
+}
+
+.filter-group label {
+    font-weight: bold;
+    font-size: 1rem;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.input-field {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    transition: border-color 0.2s ease;
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 4px rgba(37, 99, 235, 0.5);
+}
+
+/* Buttons inside the modal */
+.modal-buttons {
+    text-align: right;
+    margin-top: 1rem;
+}
+
+.modal-buttons .btn-filter {
+    background-color: #f59e0b; /* Orange button */
+    color: white;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.modal-buttons .btn-filter:hover {
+    background-color: #d97706;
+    transform: scale(1.05);
+}
+
+</style>
+
 {% if session['role'] == 'Admin' %}
 <section class="report-section">
-    <h2 class="section-title">Generate Report</h2>
-    <div class="report-content">
-        <p>Click the button below to generate and download the latest task report.</p>
-        <button class="btn-primary" onclick="generateReport()">Download Report</button>
+    <h2 class="section-title text-center">Generate Reports</h2>
+    <div class="button-group">
+        <!-- Complete Report Card -->
+        <div class="button-card">
+            <h3>All Reports</h3>
+            <p>Download all task reports, including all available data.</p>
+            <button class="btn-primary" onclick="downloadAllReport()">Download Complete Report</button>
+        </div>
+
+        <!-- Daily Report Card -->
+        <div class="button-card">
+            <h3>Daily Report</h3>
+            <p>Download task reports filtered by today’s data or customize with filters.</p>
+            <div class="button-group-daily">
+                <button class="btn-secondary" onclick="downloadDailyReport()">Download Daily Report</button>
+                <a class="add-filter" onclick="openModal()">Add Filter</a>
+            </div>
+        </div>
     </div>
 </section>
-{% endif %}
-<script>
-    async function generateReport() {
-    window.location.href = "/export_tasks";
-}
-</script>
 
+<!-- Modal -->
+<!-- Modal -->
+<div id="filterModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h3 style="font-size: 1.5rem; font-weight: bold; color: #111827; margin-bottom: 1rem; text-align: center;">Download Filter Data</h3>
+        <form id="filterForm">
+            <!-- Time Period Dropdown -->
+            <div class="filter-group">
+                <label for="timePeriod">Time Period:</label>
+                <select id="timePeriod" name="timePeriod" class="input-field">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="custom">Custom Date Range</option>
+                </select>
+            </div>
+
+            <!-- Client Name -->
+            <div class="filter-group">
+                <label for="clientName">Client Name:</label>
+                <input type="text" id="clientName" name="clientName" class="input-field" placeholder="Enter Client Name">
+            </div>
+
+            <!-- Username -->
+            <div class="filter-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" class="input-field" placeholder="Enter Username">
+            </div>
+
+            <!-- Custom Date Range (Hidden by Default) -->
+            <div class="filter-group" id="customDateRange" style="display: none;">
+                <label for="startDate">Start Date:</label>
+                <input type="date" id="startDate" name="startDate" class="input-field">
+                <label for="endDate">End Date:</label>
+                <input type="date" id="endDate" name="endDate" class="input-field">
+            </div>
+
+            <!-- Submit Button -->
+            <div class="modal-buttons">
+                <button type="button" class="btn-filter" onclick="downloadFilteredReport()">Download Filtered Report</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endif %}
+
+<script>
+    // Function to download all reports
+    async function downloadAllReport() {
+        window.location.href = "/export_tasks?reportType=all";
+    }
+
+    // Function to download the daily report
+    async function downloadDailyReport() {
+        const today = new Date().toISOString().split('T')[0];
+        window.location.href = `/export_tasks?reportType=daily&startDate=${today}&endDate=${today}`;
+    }
+
+    // Open the modal
+    function openModal() {
+        document.getElementById("filterModal").style.display = "block";
+    }
+
+    // Close the modal
+    function closeModal() {
+        document.getElementById("filterModal").style.display = "none";
+    }
+
+    // Show custom date range fields when "Custom Date Range" is selected
+    document.getElementById('timePeriod').addEventListener('change', function () {
+        const customDateRange = document.getElementById('customDateRange');
+        customDateRange.style.display = this.value === 'custom' ? 'block' : 'none';
+    });
+
+    // Function to download filtered reports
+    async function downloadFilteredReport() {
+        const form = document.getElementById('filterForm');
+        const formData = new FormData(form);
+
+        // Build query parameters
+        const params = new URLSearchParams();
+        for (const [key, value] of formData.entries()) {
+            if (value) params.append(key, value);
+        }
+
+        // Redirect to backend with filters
+        window.location.href = `/export_tasks?${params.toString()}`;
+    }
+
+    // Close modal when clicking outside of it
+    window.onclick = function(event) {
+        const modal = document.getElementById("filterModal");
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    };
+</script>
 {% endblock %}

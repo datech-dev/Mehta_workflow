@@ -140,9 +140,10 @@ def register():
         }
         users.append(new_user)
         save_json(USER_FILE, users)
-        return jsonify({"message": "User registered successfully"}), 201
-        return redirect(url_for('login'))
-    return render_template('register.html')
+        # return jsonify({"message": "User registered successfully"}), 201
+        
+        return render_template('register.html', success=True)
+    return render_template('register.html',Success =False)
 
 
 
@@ -211,12 +212,16 @@ def dashboard():
                 time_difference = deadline - now
                 if time_difference.total_seconds() > 0:
                     task['time_left'] = f"{time_difference.days} days, {time_difference.seconds // 3600} hours"
+                    task['highlight'] = "green"
                 else:
                     task['time_left'] = "Deadline passed"
+                    task['highlight'] = "red"
             except ValueError:
                 task['time_left'] = "Invalid deadline format"
+                task['highlight'] = "yellow"
         else:
             task['time_left'] = "No deadline"
+            task['highlight'] = "gray"
 
     role = session.get('role')
     return render_template('dashboard.html', role=role, tasks=tasks)
@@ -420,7 +425,7 @@ def export_tasks():
 
     # Write headers for stage changes sheet
     stage_changes_headers = [
-        'Task ID', 'Task Name', 'Current Stage', 
+        'Task ID', 'Task Name','Client' ,'Current Stage', 
         'Stage Change', 'Stage Timestamp', 'Stage Comment', 'Commented By'
     ]
     for col_num, header in enumerate(stage_changes_headers):
@@ -438,6 +443,7 @@ def export_tasks():
     for task in tasks:
         task_id = task.get('id', '')
         task_name = task.get('name', '')
+        client_name = task.get('client_name', '')
         current_stage = task.get('stage', '')
 
         stage_changes = task.get('stage_changes', []) or [{}]
@@ -446,11 +452,12 @@ def export_tasks():
         for stage_change in stage_changes:
             stage_changes_sheet.write(stage_row, 0, task_id)
             stage_changes_sheet.write(stage_row, 1, task_name)
-            stage_changes_sheet.write(stage_row, 2, current_stage)
-            stage_changes_sheet.write(stage_row, 3, stage_change.get('stage', ''))
-            stage_changes_sheet.write(stage_row, 4, stage_change.get('timestamp', ''))
-            stage_changes_sheet.write(stage_row, 5, stage_change.get('comment', ''))
-            stage_changes_sheet.write(stage_row, 6, stage_change.get('commented_by', ''))
+            stage_changes_sheet.write(stage_row, 2, client_name)
+            stage_changes_sheet.write(stage_row, 3, current_stage)
+            stage_changes_sheet.write(stage_row, 4, stage_change.get('stage', ''))
+            stage_changes_sheet.write(stage_row, 5, stage_change.get('timestamp', ''))
+            stage_changes_sheet.write(stage_row, 6, stage_change.get('comment', ''))
+            stage_changes_sheet.write(stage_row, 7, stage_change.get('commented_by', ''))
             stage_row += 1
 
     # Populate invoice status updates sheet
@@ -481,14 +488,9 @@ def export_tasks():
 
 @app.route('/generate_report')
 def generate_report():
-    tasks = load_json(TASK_FILE)
-    report_path = os.path.join(DATA_FOLDER, 'task_report.csv')
-    with open(report_path, 'w') as f:
-        f.write("Name,Description,Created By,Assigned To,Creation Time,Deadline,Stage\n")
-        for task in tasks:
-            f.write(f"{task['name']},{task['description']},{task['created_by']},{task['assigned_to']}," +
-                    f"{task['creation_time']},{task['deadline']},{task['stage']}\n")
-    return send_file(report_path, as_attachment=True)
+    return render_template('generate_report.html')
+
+    
 
 @app.route('/add-client', methods=['POST'])
 def add_client():
