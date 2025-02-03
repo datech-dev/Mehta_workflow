@@ -230,20 +230,26 @@ def dashboard():
 
 @app.route('/view_task/<int:task_id>', methods=['GET', 'POST'])
 def view_task(task_id):
-    tasks = load_json(TASK_FILE)  # Load all tasks from JSON file
+    tasks = load_json(TASK_FILE)  # Load all tasks
     task = next((task for task in tasks if task['id'] == task_id), None)
 
     if not task:
         flash("Task not found!", "danger")
         return redirect(url_for('dashboard'))
 
-    # Initialize `stage_changes`, `comments`, and `invoice_status_history` if not present
-    if 'stage_changes' not in task:
-        task['stage_changes'] = []
-    if 'comments' not in task:
-        task['comments'] = []
-    if 'invoice_status_history' not in task:
-        task['invoice_status_history'] = []
+    # Ensure necessary keys exist
+    task.setdefault('stage_changes', [])
+    task.setdefault('comments', [])
+    task.setdefault('invoice_status_history', [])
+    task.setdefault('task_edit_history', [])  # New key for tracking task edits
+
+    # Get the logged-in user and role
+    if 'user' not in session:
+        flash("You must be logged in to view tasks.", "danger")
+        return redirect(url_for('login'))
+
+    user_role = session.get('role', 'user')  # Assume default role is 'user'
+    username = session.get('user')  # Get the logged-in username
 
     if request.method == 'POST':
         # Extract form data
@@ -251,63 +257,102 @@ def view_task(task_id):
         new_comment = request.form.get('comment')
         new_invoice_status = request.form.get('invoice_status')
 
-        # Fetch current logged-in user
-        if 'user' not in session:
+        # Editable task details
+        new_name = request.form.get('name')
+        new_description = request.form.get('description')
+        new_deadline = request.form.get('deadline')
+        new_assigned_to = request.form.get('assigned_to')
+        new_client_name = request.form.get('client_name')
+
+        if not username:
             flash("You must be logged in to make changes.", "danger")
             return redirect(url_for('login'))
-        commented_by = session['user']  # Get the logged-in user from session
 
-        # Ensure a comment is added when updating the stage
+        # Ensure comments are added when updating the stage
         if new_status and new_status != task['stage'] and not new_comment:
             flash("Comments are mandatory when changing the stage.", "danger")
             return redirect(url_for('view_task', task_id=task_id))
 
-        # Record stage change with comment and commented by
+        changes_made = []  # Track what changes have been made
+
+        # Only allow admins to edit task details
+        if user_role == 'Admin':
+            if new_name and new_name != task['name']:
+                changes_made.append(f"Name changed from '{task['name']}' to '{new_name}'")
+                task['name'] = new_name
+
+            if new_description and new_description != task['description']:
+                changes_made.append("Description updated")
+                task['description'] = new_description
+
+            if new_deadline and new_deadline != task['deadline']:
+                changes_made.append(f"Deadline updated to {new_deadline}")
+                task['deadline'] = new_deadline
+
+            if new_assigned_to and new_assigned_to != task['assigned_to']:
+                changes_made.append(f"Assigned to changed from '{task['assigned_to'] or 'Unassigned'}' to '{new_assigned_to}'")
+                task['assigned_to'] = new_assigned_to
+
+            if new_client_name and new_client_name != task['client_name']:
+                changes_made.append(f"Client changed from '{task['client_name'] or 'Unassigned'}' to '{new_client_name}'")
+                task['client_name'] = new_client_name
+
+            if changes_made:
+                task['task_edit_history'].append({
+                    'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'edited_by': username,
+                    'remarks': "; ".join(changes_made)
+                })
+        else:
+            flash("You do not have permission to edit task details.", "danger")
+            return redirect(url_for('view_task', task_id=task_id))
+
+        # Record stage change
         if new_status and new_status != task['stage']:
-            change_entry = {
+            task['stage_changes'].append({
                 'stage': new_status,
                 'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'comment': new_comment or "No comment provided",
-                'commented_by': commented_by
-            }
-            task['stage_changes'].append(change_entry)
-            task['stage'] = new_status  # Update the current stage
+                'commented_by': username
+            })
+            task['stage'] = new_status
 
-        # Add a comment without changing the stage
         elif new_comment:
-            change_entry = {
+            task['stage_changes'].append({
                 'stage': "-",
                 'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'comment': new_comment,
-                'commented_by': commented_by
-            }
-            task['stage_changes'].append(change_entry)
+                'commented_by': username
+            })
 
-        # Handle invoice status updates with timestamp and commented_by
+        # Handle invoice status updates
         if new_invoice_status:
-            invoice_status_entry = {
+            task['invoice_status_history'].append({
                 'invoice_status': new_invoice_status,
                 'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'commented_by': commented_by
-            }
-            task['invoice_status_history'].append(invoice_status_entry)
+                'commented_by': username
+            })
 
-        # Save the updated task back to the JSON file
+        # Save updates to JSON file
         save_json(TASK_FILE, tasks)
         flash("Task updated successfully!", "success")
         return redirect(url_for('view_task', task_id=task_id))
 
-    # Determine the latest invoice status
-    latest_invoice_status = (
-        task['invoice_status_history'][-1]['invoice_status']
-        if task['invoice_status_history']
-        else "No status provided"
+    latest_invoice_status = task['invoice_status_history'][-1]['invoice_status'] if task['invoice_status_history'] else "No status provided"
+    users = load_users()
+
+        # Load clients from CSV
+    clients = []
+    with open('clients.csv', mode='r', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        clients = [row for row in reader]
+
+    return render_template(
+        'view.html', task=task, latest_invoice_status=latest_invoice_status, user_role=user_role,users=users, clients=clients
     )
 
-    # Render the task details with history and latest invoice status
-    return render_template(
-        'view.html', task=task, latest_invoice_status=latest_invoice_status
-    )
+
+
 
 
 
@@ -490,70 +535,387 @@ def export_tasks():
 def generate_report():
     return render_template('generate_report.html')
 
-    
+@app.route('/daily_report', methods=['GET'])
+@role_required('Admin')  # Ensure only admins can access this report
+def daily_report():
+    tasks = load_json(TASK_FILE)
+    today = datetime.utcnow().strftime('%Y-%m-%d')  # Current date in YYYY-MM-DD format
 
+    # Filter tasks based on today's creation date or updates
+    filtered_tasks = []
+    for task in tasks:
+        # Check if the task was created today
+        if task['creation_time'].startswith(today):
+            filtered_tasks.append(task)
+            continue
+
+        # Check if there are comments added today
+        for comment in task.get('comments', []):
+            if comment['timestamp'].startswith(today):
+                filtered_tasks.append(task)
+                break
+
+        # Check if there are invoice status updates today
+        for invoice_status in task.get('invoice_status_history', []):
+            if invoice_status['timestamp'].startswith(today):
+                filtered_tasks.append(task)
+                break
+
+    # Remove duplicates (if a task is added multiple times from different checks)
+    filtered_tasks = {task['id']: task for task in filtered_tasks}.values()
+
+    # Generate Excel file
+    output = io.BytesIO()
+    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+    worksheet = workbook.add_worksheet("Daily Report")
+
+    # Write headers
+    headers = [
+        "Task ID", "Task Name", "Description", "Created By", "Assigned To",
+        "Stage", "Deadline", "Creation Time", "Comment Timestamp", "Commented By",
+        "Comment Text", "Invoice Status Timestamp", "Invoice Status", "Invoice Commented By"
+    ]
+    for col_num, header in enumerate(headers):
+        worksheet.write(0, col_num, header)
+
+    # Populate rows
+    row_num = 1
+    for task in filtered_tasks:
+        # Format dates as dd/mm/yyyy
+        creation_time = format_date(task.get('creation_time', ''))
+        deadline = format_date(task.get('deadline', ''))
+
+        # Write task creation row
+        # worksheet.write(row_num, 0, task['id'])
+        # worksheet.write(row_num, 1, task['name'])
+        # worksheet.write(row_num, 2, task['description'])
+        # worksheet.write(row_num, 3, task['created_by'])
+        # worksheet.write(row_num, 4, task['assigned_to'])
+        # worksheet.write(row_num, 5, task['stage'])
+        # worksheet.write(row_num, 6, deadline)
+        # worksheet.write(row_num, 7, creation_time)
+        # worksheet.write(row_num, 8, "")  # No comment timestamp for this row
+        # worksheet.write(row_num, 9, "")  # No commented_by for this row
+        # worksheet.write(row_num, 10, "")  # No comment text for this row
+        # worksheet.write(row_num, 11, "")  # No invoice timestamp for this row
+        # worksheet.write(row_num, 12, "")  # No invoice status for this row
+        # worksheet.write(row_num, 13, "")  # No invoice commented_by for this row
+        # row_num += 1
+
+        # Write rows for today's comments
+        for comment in task.get('comments', []):
+            if comment['timestamp'].startswith(today):
+                comment_timestamp = format_date(comment['timestamp'])
+                worksheet.write(row_num, 0, task['id'])
+                worksheet.write(row_num, 1, task['name'])
+                worksheet.write(row_num, 2, task['description'])
+                worksheet.write(row_num, 3, task['created_by'])
+                worksheet.write(row_num, 4, task['assigned_to'])
+                worksheet.write(row_num, 5, task['stage'])
+                worksheet.write(row_num, 6, deadline)
+                worksheet.write(row_num, 7, creation_time)
+                worksheet.write(row_num, 8, comment_timestamp)  # Comment timestamp
+                worksheet.write(row_num, 9, comment['commented_by'])  # Commented by
+                worksheet.write(row_num, 10, comment['comment'])  # Comment text
+                worksheet.write(row_num, 11, "")  # No invoice timestamp for this row
+                worksheet.write(row_num, 12, "")  # No invoice status for this row
+                worksheet.write(row_num, 13, "")  # No invoice commented_by for this row
+                row_num += 1
+
+        # Write rows for today's invoice status updates
+        for invoice_status in task.get('invoice_status_history', []):
+            if invoice_status['timestamp'].startswith(today):
+                invoice_timestamp = format_date(invoice_status['timestamp'])
+                worksheet.write(row_num, 0, task['id'])
+                worksheet.write(row_num, 1, task['name'])
+                worksheet.write(row_num, 2, task['description'])
+                worksheet.write(row_num, 3, task['created_by'])
+                worksheet.write(row_num, 4, task['assigned_to'])
+                worksheet.write(row_num, 5, task['stage'])
+                worksheet.write(row_num, 6, deadline)
+                worksheet.write(row_num, 7, creation_time)
+                worksheet.write(row_num, 8, "")  # No comment timestamp for this row
+                worksheet.write(row_num, 9, "")  # No commented_by for this row
+                worksheet.write(row_num, 10, "")  # No comment text for this row
+                worksheet.write(row_num, 11, invoice_timestamp)  # Invoice timestamp
+                worksheet.write(row_num, 12, invoice_status['invoice_status'])  # Invoice status
+                worksheet.write(row_num, 13, invoice_status.get('commented_by', ''))  # Invoice commented_by
+                row_num += 1
+
+    workbook.close()
+    output.seek(0)
+
+    # Send the file as a response
+    return Response(
+        output,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment;filename=daily_report_{today}.xlsx"}
+    )
+
+
+def format_date(date_str):
+    """Format a date string to dd/mm/yyyy format."""
+    if not date_str:
+        return ""
+    try:
+        # Try ISO format first
+        date_obj = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%f')
+        return date_obj.strftime('%d/%m/%Y')
+    except ValueError:
+        try:
+            # Try standard datetime format
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S')
+            return date_obj.strftime('%d/%m/%Y')
+        except ValueError:
+            return date_str  # Return original string if format is incorrect
+
+
+@app.route('/filtered_report', methods=['GET'])
+@role_required('Admin')  # Ensure only admins can access this report
+def filtered_report():
+    # Load tasks data from your JSON file
+    tasks = load_json(TASK_FILE)
+
+    # Get filter parameters
+    time_period = request.args.get('timePeriod', '')
+    client_name = request.args.get('clientName', '').strip().lower()
+    username = request.args.get('username', '').strip().lower()
+    start_date = request.args.get('startDate', '')
+    end_date = request.args.get('endDate', '')
+
+    # Determine date range
+    today = datetime.today().date() 
+    if time_period == 'daily':
+        start_date = end_date = today
+    elif time_period == 'weekly':
+        start_date = today - timedelta(days=today.weekday()) 
+        print(start_date) # Start of the week (Monday)
+        end_date = today
+    elif time_period == 'monthly':
+        start_date = today.replace(day=1)  # First day of the month
+        end_date = today
+    elif time_period == 'custom' and start_date and end_date:
+        start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+        end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+    else:
+        start_date = end_date = None  # No date filtering if not specified
+
+    # Filter tasks based on provided criteria
+    filtered_tasks = []
+    for task in tasks:
+        task_client_name = task.get('client_name', '').strip().lower()
+        task_creator = task.get('created_by', '').strip().lower()
+
+        # Check date filters
+        creation_date = datetime.strptime(task.get('creation_time', ''), "%Y-%m-%dT%H:%M:%S.%f").date()
+        if start_date and end_date and not (start_date <= creation_date <= end_date):
+            continue  # Skip tasks outside the selected date range
+
+        # Apply client name and username filters
+        if client_name and client_name != task_client_name:
+            continue  # Skip if client name doesn't match
+        if username and username != task_creator:
+            continue  # Skip if username doesn't match
+
+        # Append task to filtered results
+        filtered_tasks.append(task)
+
+    # Generate Excel file
+    output = io.BytesIO()
+    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+    worksheet = workbook.add_worksheet("Filtered Report")
+
+    # Write headers
+    headers = [
+        "Task ID", "Task Name", "Description", "Created By", "Assigned To",
+        "Stage", "Deadline", "Creation Time"
+    ]
+    for col_num, header in enumerate(headers):
+        worksheet.write(0, col_num, header)
+
+    # Populate rows
+    row_num = 1
+    for task in filtered_tasks:
+        worksheet.write(row_num, 0, task['id'])
+        worksheet.write(row_num, 1, task['name'])
+        worksheet.write(row_num, 2, task['description'])
+        worksheet.write(row_num, 3, task['created_by'])
+        worksheet.write(row_num, 4, task['assigned_to'])
+        worksheet.write(row_num, 5, task['stage'])
+        worksheet.write(row_num, 6, task['deadline'])
+        worksheet.write(row_num, 7, task['creation_time'])
+        row_num += 1
+
+    workbook.close()
+    output.seek(0)
+
+    # Send the file as a response
+    filename = f"filtered_report_{today}.xlsx"
+    return Response(
+        output,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment;filename={filename}"}
+    )
+CSV_FILE = "clients.csv"
+def load_clients_from_csv():
+    clients = []
+    try:
+        with open(CSV_FILE, mode='r', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                clients.append(row)
+    except FileNotFoundError:
+        return []
+    return clients
+def save_clients_to_csv(clients):
+    with open(CSV_FILE, mode='w', newline='', encoding='utf-8') as file:
+        fieldnames = ["Client_Name", "Group", "Type", "Assessment_Year", "Work", "Demand", "Department"]
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(clients)
+@app.route('/get-clients', methods=['GET'])
+def get_clients():
+    clients = load_clients_from_csv()
+    return jsonify(clients), 200
 @app.route('/add-client', methods=['POST'])
 def add_client():
     client = request.json
     if not client:
         return jsonify({"error": "No client data provided"}), 400
 
-    # Append the client data to the CSV file
-    with open('clients.csv', mode='a', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow([client['clientName'], client['Group'], client['Type'], client['year'], client['Work'], client['Demand'], client['Department']])
+    clients = load_clients_from_csv()
+
+    # Check if client already exists
+    for c in clients:
+        if c["Client_Name"] == client["clientName"]:
+            return jsonify({"error": "Client already exists!"}), 400
+
+    # Append the client data
+    clients.append({
+        "Client_Name": client["clientName"],
+        "Group": client["Group"],
+        "Type": client["Type"],
+        "Assessment_Year": client["year"],
+        "Work": client["Work"],
+        "Demand": client["Demand"],
+        "Department": client["Department"]
+    })
     
-    return jsonify({"message": "Client added to CSV successfully"}), 200
+    save_clients_to_csv(clients)
+    return jsonify({"message": "Client added successfully!"}), 200
 
+@app.route('/update-client', methods=['POST'])
+def update_client():
+    data = request.json
+    original_name = data.get("originalName")
+    updated_client = data.get("updatedClient")
 
-# Route to fetch clients from CSV
-@app.route('/get-clients', methods=['GET'])
-def get_clients():
-    clients = []
-    try:
-        with open('clients.csv', mode='r', encoding='utf-8') as file:
-            reader = csv.DictReader(file)
-            for row in reader:
-                
-                
-                clients.append(row)
-                print(clients)
-    except FileNotFoundError:
-        return jsonify({"error": "CSV file not found"}), 404
+    if not original_name or not updated_client:
+        return jsonify({"error": "Missing required data"}), 400
 
-    return jsonify(clients), 200
+    clients = load_clients_from_csv()
 
+    # Find and update the client
+    for client in clients:
+        if client["Client_Name"] == original_name:
+            client.update({
+                "Client_Name": updated_client["Client_Name"],
+                "Group": updated_client["Group"],
+                "Type": updated_client["Type"],
+                "Assessment_Year": updated_client["Assessment_Year"],
+                "Work": updated_client["Work"],
+                "Demand": updated_client["Demand"],
+                "Department": updated_client["Department"]
+            })
+            break
+    else:
+        return jsonify({"error": "Client not found"}), 404
+
+    save_clients_to_csv(clients)
+    return jsonify({"message": "Client updated successfully!"}), 200
 
 @app.route('/delete-client', methods=['POST'])
 def delete_client():
-    client_name = request.json.get('clientName')
+    client_name = request.json.get("clientName")
     if not client_name:
         return jsonify({"error": "Client name not provided"}), 400
 
-    try:
-        clients = []
-        with open('clients.csv', mode='r', encoding='utf-8') as file:
-            reader = csv.DictReader(file)
-            for row in reader:
-                if row['Client_Name'] != client_name:
-                    clients.append(row)
+    clients = load_clients_from_csv()
+    updated_clients = [client for client in clients if client["Client_Name"] != client_name]
 
-        with open('clients.csv', mode='w', newline='', encoding='utf-8') as file:
-            writer = csv.DictWriter(file, fieldnames=clients[0].keys())
-            writer.writeheader()
-            writer.writerows(clients)
+    if len(updated_clients) == len(clients):
+        return jsonify({"error": "Client not found!"}), 404
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-    return jsonify({"message": "Client deleted successfully"}), 200
-
-
+    save_clients_to_csv(updated_clients)
+    return jsonify({"message": "Client deleted successfully!"}), 200
 
 @app.route('/client', endpoint='clients')
 def client():
-    # your logic here
     return render_template('client.html')
+
+
+# @app.route('/add-client', methods=['POST'])
+# def add_client():
+#     client = request.json
+#     if not client:
+#         return jsonify({"error": "No client data provided"}), 400
+
+#     # Append the client data to the CSV file
+#     with open('clients.csv', mode='a', newline='', encoding='utf-8') as file:
+#         writer = csv.writer(file)
+#         writer.writerow([client['clientName'], client['Group'], client['Type'], client['year'], client['Work'], client['Demand'], client['Department']])
+    
+#     return jsonify({"message": "Client added to CSV successfully"}), 200
+
+
+# # Route to fetch clients from CSV
+# @app.route('/get-clients', methods=['GET'])
+# def get_clients():
+#     clients = []
+#     try:
+#         with open('clients.csv', mode='r', encoding='utf-8') as file:
+#             reader = csv.DictReader(file)
+#             for row in reader:
+                
+                
+#                 clients.append(row)
+#                 print(clients)
+#     except FileNotFoundError:
+#         return jsonify({"error": "CSV file not found"}), 404
+
+#     return jsonify(clients), 200
+
+
+# @app.route('/delete-client', methods=['POST'])
+# def delete_client():
+#     client_name = request.json.get('clientName')
+#     if not client_name:
+#         return jsonify({"error": "Client name not provided"}), 400
+
+#     try:
+#         clients = []
+#         with open('clients.csv', mode='r', encoding='utf-8') as file:
+#             reader = csv.DictReader(file)
+#             for row in reader:
+#                 if row['Client_Name'] != client_name:
+#                     clients.append(row)
+
+#         with open('clients.csv', mode='w', newline='', encoding='utf-8') as file:
+#             writer = csv.DictWriter(file, fieldnames=clients[0].keys())
+#             writer.writeheader()
+#             writer.writerows(clients)
+
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
+
+#     return jsonify({"message": "Client deleted successfully"}), 200
+
+
+
+# @app.route('/client', endpoint='clients')
+# def client():
+#     # your logic here
+#     return render_template('client.html')
 
 
 if __name__ == '__main__':

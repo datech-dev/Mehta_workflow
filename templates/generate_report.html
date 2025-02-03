@@ -242,6 +242,7 @@ body {
             <p>Download task reports filtered by today’s data or customize with filters.</p>
             <div class="button-group-daily">
                 <button class="btn-secondary" onclick="downloadDailyReport()">Download Daily Report</button>
+
                 <a class="add-filter" onclick="openModal()">Add Filter</a>
             </div>
         </div>
@@ -269,7 +270,14 @@ body {
             <!-- Client Name -->
             <div class="filter-group">
                 <label for="clientName">Client Name:</label>
-                <input type="text" id="clientName" name="clientName" class="input-field" placeholder="Enter Client Name">
+                <select id="Clientname" name="clientname" required>
+                    <option value="">Select a client</option>
+                    {% for client in clients %}
+                    <option value="{{ client['Client_Name'] }}">
+                        {{ client['Client_Name'] }}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
 
             <!-- Username -->
@@ -303,10 +311,11 @@ body {
     }
 
     // Function to download the daily report
-    async function downloadDailyReport() {
-        const today = new Date().toISOString().split('T')[0];
-        window.location.href = `/export_tasks?reportType=daily&startDate=${today}&endDate=${today}`;
-    }
+    // Function to download the daily report
+async function downloadDailyReport() {
+    window.location.href = "/daily_report";
+}
+
 
     // Open the modal
     function openModal() {
@@ -326,18 +335,19 @@ body {
 
     // Function to download filtered reports
     async function downloadFilteredReport() {
-        const form = document.getElementById('filterForm');
-        const formData = new FormData(form);
+    const form = document.getElementById('filterForm');
+    const formData = new FormData(form);
 
-        // Build query parameters
-        const params = new URLSearchParams();
-        for (const [key, value] of formData.entries()) {
-            if (value) params.append(key, value);
-        }
-
-        // Redirect to backend with filters
-        window.location.href = `/export_tasks?${params.toString()}`;
+    // Build query parameters
+    const params = new URLSearchParams();
+    for (const [key, value] of formData.entries()) {
+        if (value) params.append(key, value);
     }
+
+    // Redirect to backend with filters
+    window.location.href = `/filtered_report?${params.toString()}`;
+}
+
 
     // Close modal when clicking outside of it
     window.onclick = function(event) {

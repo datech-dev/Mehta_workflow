@@ -2,11 +2,11 @@
     {
         "id": 1,
         "unique_id": "New task_2025-01-18T18:49_dhinesh_2",
-        "name": "New task",
-        "description": "test",
+        "name": "New task updated again to test it ",
+        "description": "test for the changes ",
         "created_by": "dhinesh_admin",
         "assigned_to": "dhinesh_2",
-        "deadline": "2025-01-18 18:49:00",
+        "deadline": "2025-02-22",
         "comments": [],
         "blocking_reasons": [],
         "files": [],
@@ -32,21 +32,39 @@
                 "commented_by": "dhinesh_admin"
             }
         ],
-        "invoice_status_history": []
+        "invoice_status_history": [
+            {
+                "invoice_status": "paid",
+                "timestamp": "2025-02-01 14:50:34",
+                "commented_by": "dhinesh_admin"
+            }
+        ],
+        "task_edit_history": [
+            {
+                "timestamp": "2025-02-02 10:17:50",
+                "edited_by": "dhinesh_admin",
+                "remarks": "Name changed from 'New task updated' to 'New task updated again'"
+            },
+            {
+                "timestamp": "2025-02-02 10:19:13",
+                "edited_by": "dhinesh_admin",
+                "remarks": "Name changed from 'New task updated again' to 'New task updated again to test it '; Description updated; Deadline updated to 2025-02-22"
+            }
+        ]
     },
     {
         "id": 2,
         "unique_id": "New task_2025-01-25T21:07_dhinesh_2_SS Venkatesh",
-        "name": "New task",
-        "description": "dwqwd",
+        "name": "New task edited testing ",
+        "description": "dwqwdqwe",
         "created_by": "dhinesh_admin",
         "assigned_to": "dhinesh_2",
-        "client_name": "SS Venkatesh",
-        "deadline": "2025-01-25 21:07:00",
+        "client_name": "SS Venkateshwaran",
+        "deadline": "2025-02-28",
         "comments": [],
         "blocking_reasons": [],
         "files": [],
-        "stage": "Completed",
+        "stage": "In Progress",
         "creation_time": "2025-01-20T12:33:58.184864",
         "stage_changes": [
             {
@@ -54,23 +72,41 @@
                 "timestamp": "2025-01-25 11:29:33",
                 "comment": "done",
                 "commented_by": "rawlla"
+            },
+            {
+                "stage": "In Progress",
+                "timestamp": "2025-02-02 10:21:27",
+                "comment": "Moved to in progress",
+                "commented_by": "dhinesh_admin"
             }
         ],
-        "invoice_status_history": []
+        "invoice_status_history": [],
+        "task_edit_history": [
+            {
+                "timestamp": "2025-02-02 10:19:52",
+                "edited_by": "dhinesh_admin",
+                "remarks": "Name changed from 'New task' to 'New task edited testing '; Deadline updated to 2025-02-28; Client changed from 'SS Venkatesh' to 'SS Venkateshwaran'"
+            },
+            {
+                "timestamp": "2025-02-02 10:20:46",
+                "edited_by": "dhinesh_admin",
+                "remarks": "Description updated"
+            }
+        ]
     },
     {
         "id": 3,
         "unique_id": "automation_2025-01-26T20:49_dhinesh_2_Shanmugam Arivalagan",
-        "name": "automation",
+        "name": "automation change",
         "description": "doing priority task",
         "created_by": "rawlla",
-        "assigned_to": "dhinesh_2",
-        "client_name": "Shanmugam Arivalagan",
-        "deadline": "2025-01-26 20:49:00",
+        "assigned_to": "sherif",
+        "client_name": "Subramanian Venkatraman ",
+        "deadline": "2025-03-06",
         "comments": [],
         "blocking_reasons": [],
         "files": [],
-        "stage": "Completed",
+        "stage": "In Progress",
         "creation_time": "2025-01-24T14:19:49.861976",
         "stage_changes": [
             {
@@ -90,9 +126,63 @@
                 "timestamp": "2025-01-25 17:42:56",
                 "comment": "doe",
                 "commented_by": "rawlla"
+            },
+            {
+                "stage": "In Progress",
+                "timestamp": "2025-02-02 11:24:02",
+                "comment": "changed to inprogress",
+                "commented_by": "dhinesh_admin"
             }
         ],
-        "invoice_status_history": []
+        "invoice_status_history": [
+            {
+                "invoice_status": "paid",
+                "timestamp": "2025-02-02 10:52:43",
+                "commented_by": "dhinesh_admin"
+            }
+        ],
+        "task_edit_history": [
+            {
+                "timestamp": "2025-02-02 10:52:52",
+                "edited_by": "dhinesh_admin",
+                "remarks": "Assigned to changed from 'dhinesh_2' to 'dhinesh_3'"
+            },
+            {
+                "timestamp": "2025-02-02 10:53:16",
+                "edited_by": "dhinesh_admin",
+                "remarks": "Name changed from 'automation' to 'automation change'"
+            },
+            {
+                "timestamp": "2025-02-02 10:59:58",
+                "edited_by": "dhinesh_admin",
+                "remarks": "Assigned to changed from 'dhinesh_3' to 'rawlla11'"
+            },
+            {
+                "timestamp": "2025-02-02 11:14:12",
+                "edited_by": "dhinesh_admin",
+                "remarks": "Client changed from 'Shanmugam Arivalagan' to 'Arockiaraj'"
+            },
+            {
+                "timestamp": "2025-02-02 11:14:22",
+                "edited_by": "dhinesh_admin",
+                "remarks": "Assigned to changed from 'rawlla11' to 'mohamed'"
+            },
+            {
+                "timestamp": "2025-02-02 11:22:59",
+                "edited_by": "dhinesh_admin",
+                "remarks": "Assigned to changed from 'mohamed' to 'John'; Client changed from 'Arockiaraj' to 'Subramanian Venkatraman '"
+            },
+            {
+                "timestamp": "2025-02-02 18:36:42",
+                "edited_by": "dhinesh_admin",
+                "remarks": "Assigned to changed from 'John' to 'sherif'"
+            },
+            {
+                "timestamp": "2025-02-02 18:36:56",
+                "edited_by": "dhinesh_admin",
+                "remarks": "Deadline updated to 2025-03-06"
+            }
+        ]
     },
     {
         "id": 4,
@@ -125,12 +215,21 @@
         "created_by": "rawlla",
         "assigned_to": "dhinesh_2",
         "client_name": "Shanmugam Arivalagan",
-        "deadline": "2025-01-28 21:18:00",
+        "deadline": "2028-10-18",
         "comments": [],
         "blocking_reasons": [],
         "files": [],
         "stage": "Allotted",
-        "creation_time": "2025-01-24T15:49:01.344943"
+        "creation_time": "2025-01-24T15:49:01.344943",
+        "stage_changes": [],
+        "invoice_status_history": [],
+        "task_edit_history": [
+            {
+                "timestamp": "2025-02-02 18:48:00",
+                "edited_by": "dhinesh_admin",
+                "remarks": "Deadline updated to 2028-10-18"
+            }
+        ]
     },
     {
         "id": 6,

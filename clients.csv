@@ -1,8 +1,93 @@
 Client_Name,Group,Type,Assessment_Year,Work,Demand,Department
-SS Venkatesh,SS Venkatesh,Direct tax,2017,CIT order passed - revert back to AO,"Rs. 21,32,534",AO
-Arockiaraj,Arockiaraj,Direct tax,2017,CIT order passed - revert back to AO,"Rs. 22,04,778",AO
-Shanmugam Arivalagan,Shanmugam Arivalagan,Direct tax,2016,CIT - revert back to AO,"Rs. 22,24,120",AO
-L Ramesh,L Ramesh,Direct tax,2016,Appeal is SET - ASIDE and revert back to AO,"Rs. 1,00,19,748",AO
-Chennai Integrated Construction,Chennai Integrated Construction,Direct tax,2015, Revert back to AO (set aside),"Rs. 5,81,48,290",AO
-Subramanian Venkatraman ,Krishna Swamy Auditor ,Direct tax,2019,CIT - revert back to AO,"Rs. 11,24,74,114",AO
-VA Techies,Technology,Direct Tax,2025,Working,200000,GST(OA)
+Arockiaraj,Arockiaraj,Direct Tax,2017-18,CIT order passed - revert back to AO,"Rs. 22,04,778",IT(OA)
+Shanmugam Arivalagan,Shanmugam Arivalagan,,2016- 17,CIT - revert back to AO,"Rs. 22,24,120",IT(OA)
+L Ramesh,L Ramesh,,2018- 19,Appeal is SET - ASIDE and revert back to AO,"Rs. 1,00,19,748",IT(OA)
+Chennai Integrated Construction,Chennai Integrated Construction,,2015- 16, Revert back to AO (set aside),"Rs. 5,81,48,290",IT(OA)
+Krishna Swamy Auditor ,Subramanian Venkatraman ,,2019-20,CIT - revert back to AO,"Rs. 11,24,74,114",IT(OA)
+Ayyar.P,Ayyar. P,,2011-12,CIT order passed - revert back to AO,"Rs.16,11,829",IT(OA)
+Seshmalji Mohankumar ,Mohan Kumar,,2008- 09,no ws,"Rs. 15,51,228/-",CIT
+Seshmalji Mohankumar,Mohan Kumar,,2013-14,ws filed,"Rs. 1,21,04,357/-",CIT
+Seshmalji Mohankumar,Mohan Kumar,,2013-14,no ws,"Rs. 3,70,17,482/-",CIT
+Seshmalji Mohankumar,Mohan Kumar,,2014-15,ws filed,"Rs. 2,57,81,072/-",CIT
+Seshmalji Mohankumar,Mohan Kumar,,2015-16,WS filed,"Rs. 1,36,09,109/-",CIT
+Seshmalji Mohankumar,Mohan Kumar,,2016-17,ws filed,"Rs. 2,26,34,601/-",CIT
+Seshmalji Mohankumar,Mohan Kumar,,2017-18,ws filed,"Rs. 10,85,93,267/-",CIT
+Seshmalji Mohankumar,Mohan Kumar,,2018-19,ws filed,"Rs. 2,31,20,812/-",CIT
+Seshmalji Mohankumar,Mohan Kumar,,2019-20,ws filed,"Rs. 9,01,95,403/-",CIT
+Seshmalji Mohankumar,Mohan Kumar,,2020-21,No WS( Additional grounds submitted),"Rs. 22,71,83,975/-",CIT
+Seshmalji Mohankumar,Mohan Kumar,,2021-22,No WS( Additional grounds submitted),"Rs. 18,46,65,580/-",CIT
+Seshmalji Mohankumar,Mohan Kumar,,2010-11,filing pending,"Rs.2,79,63,080",CIT
+Khushbu Mohan Kumar Jain,Mohan Kumar,,2015- 16,no ws," Rs. 36,43,455",CIT
+Khushbu Mohan Kumar Jain,Mohan Kumar,,2016- 17,no ws,"Rs. 30,30,910",CIT
+Khushbu Mohan Kumar Jain,Mohan Kumar,, 2017- 18,no ws,"Rs. 4,70,826",CIT
+Khushbu Mohan Kumar Jain,Mohan Kumar,,2018- 19,no ws,"Rs. 4,78,720",CIT
+Khushbu Mohan Kumar Jain,Mohan Kumar,,2019- 20,no ws,"Rs. 4,47,528",CIT
+Khushbu Mohan Kumar Jain,Mohan Kumar,,2020- 21,no ws,"Rs. 2,94,77,414/-",CIT
+Rekha M Jain,Mohan Kumar,,2015- 16,no ws,"Rs. 2,01,32,153",CIT
+Rekha M Jain,Mohan Kumar,,2015- 16,No Notice yet,"Rs. 2,02,50,814",CIT
+Rekha M Jain,Mohan Kumar,,2016- 17,No Notice yet,"Rs. 1,37,866",CIT
+Rekha M Jain,Mohan Kumar,,2017 18,No Notice yet,"Rs. 1,53,191",CIT
+Rekha M Jain,Mohan Kumar,,2018- 19,No Notice yet,"Rs. 1,40,196",CIT
+Rekha M Jain,Mohan Kumar,,2019- 20,No Notice yet,"Rs. 18,76,052",CIT
+Rekha M Jain,Mohan Kumar,,2020- 21,No Notice yet,"Rs. 4,65,954",CIT
+Divya Jain Mohan Kumar ,Mohan Kumar ,,2015-16,ws filed,"Rs. 1,73,60,610",CIT
+Divya Jain Mohan Kumar ,Mohan Kumar ,,2016-17,ws filed,"Rs. 2,32,20,216",CIT
+Divya Jain Mohan Kumar ,Mohan Kumar ,,2017-18,ws filed,"Rs. 1,07,96,237",CIT
+Divya Jain Mohan Kumar ,Mohan Kumar ,,2018-19,ws filed,"Rs. 24,06,870",CIT
+Divya Jain Mohan Kumar ,Mohan Kumar ,,2019-20,ws filed,"Rs. 30,79,204",CIT
+Bhavika Jain Mohan Kumar ,Mohan Kumar ,,2015-16,ws filed,"Rs. 17,79,823",CIT
+Bhavika Jain Mohan Kumar ,Mohan Kumar ,,2016-17,ws filed,"Rs. 32,53,266",CIT
+Bhavika Jain Mohan Kumar ,Mohan Kumar ,,2021-22,filing pending,"Rs.53,10,830",CIT
+Sekar Chodigan,Sekar Chodigan ,,2015-16,WS in file,"Rs. 18,71,834/-",CIT
+Sekar Chodigan,Sekar Chodigan ,,2016-17,WS in file,"Rs. 26,22,303/-",CIT
+Sekar Chodigan,Sekar Chodigan ,,2017-18,Ws in file,"Rs. 20,36,062/-",CIT
+Niha international,Niha international ,,2017-18,WS in file,"Rs. 1,07,60,376,",CIT
+Anbhezhil Suriyaraj Kumar,Anbhezhil Suriyajkumar,,2016-17,no ws,"Rs. 5,62,71,187/-",CIT
+Anbhezhil Suriyaraj Kumar,Anbhezhil Suriyajkumar,,2016-17,no ws,"Rs. 3,88,97,386",CIT
+Alphonse Francis Sekar Raja,Alphonse Francis Sekar Raja,,2011-12,no ws,"Rs. 2,39,85,850/-",CIT
+Alphonse Francis Sekar Raja,Alphonse Francis Sekar Raja,,2013-14,no ws,"Rs. 13,85,962",CIT
+Alphonse Francis Sekar Raja,Alphonse Francis Sekar Raja,,2014-15,no ws,"Rs. 2,649",CIT
+Alphonse Francis Sekar Raja,Alphonse Francis Sekar Raja,,2015-16,no ws,Rs. 1,CIT
+Alphonse Francis Sekar Raja,Alphonse Francis Sekar Raja,,2016-17,no ws,"Rs. 18,380",CIT
+Alphonse Francis Sekar Raja,Alphonse Francis Sekar Raja,,2017-18,no ws,"Rs. 5,12,49,177,",CIT
+Alphonse Francis Sekar Raja,Alphonse Francis Sekar Raja,,2018-19,no ws,"Rs. 7,18,15,025",CIT
+,,,2021- 22,No Notice yet,"Rs. 37,50,000",CIT
+Sunil Kumar Goutamchand,Sunil Kumar Goutamchand,,2021- 22,No Notice yet,"Rs. 9,00,240",CIT
+Padam Mutha Prakashchand,Padam Mutha Prakashchand,,2021- 22,No Notice yet,"Rs. 9,00,240",CIT
+Bhatevada HUF,Bhatevada HUF,,2020- 21,No Notice yet,"Rs. 41,58,039/-",CIT
+Madan Chand Milapchand,Madan Chand Milapchand,,2020- 21,No Notice yet,"Rs. 18,70,751/-",CIT
+Shantilal Jain Vijay Kumar,Shantilal Jain Vijay Kumar ,,2018-19,No Notice yet,"Rs. 91,65,819/-",CIT
+Shantilal Jain Vijay Kumar,Shantilal Jain Vijay Kumar ,,2019-20,No Notice yet,"Rs. 57,35,863/-",CIT
+Shantilal Jain Vijay Kumar,Shantilal Jain Vijay Kumar ,,2020-21,No Notice yet,"Rs. 35,79,715/-",CIT
+Shantilal Jain Vijay Kumar,Shantilal Jain Vijay Kumar ,,2021-22,No Notice yet,"Rs. 5,84,207/-",CIT
+Amit Jain ,Amit Jain/ Sushil Melapchand Jain,,2015-16,No Notice yet,"Rs. 36,57,303",CIT
+Amit Jain,Amit Jain/ Sushil Melapchand Jain,,2016-17,No Notice yet,"Rs. 5,96,32,387",CIT
+Amit Jain,Amit Jain/ Sushil Melapchand Jain,,2017-18,No Notice yet,"Rs. 12,63,60,237",CIT
+Amit Jain,Amit Jain/ Sushil Melapchand Jain,,2018-19,No Notice yet,"Rs. 37,47,040",CIT
+Amit Jain,Amit Jain/ Sushil Melapchand Jain,,2019-20,No Notice yet,"Rs. 1,61,774",CIT
+Amit Jain,Amit Jain/ Sushil Melapchand Jain,,2020-21,No Notice yet,"Rs. 2,10,682",CIT
+Amit Jain ,Amit Jain/ Sushil Melapchand Jain,,2021-22,No Notice yet,"Rs. 2,05,12,543",CIT
+Amit Jain,Amit Jain/ Sushil Melapchand Jain,,2022-23,No Notice yet,"Rs. 4,75,84,296",CIT
+Sushil Jain,Amit Jain/ Sushil Melapchand Jain,,2015-16,No Notice yet,"Rs. 37,03,437",CIT
+Sushil Jain,Amit Jain/ Sushil Melapchand Jain,,2016-17,No Notice yet,"Rs. 5,97,31,896",CIT
+Sushil Jain,Amit Jain/ Sushil Melapchand Jain,,2017-18,No Notice yet,"Rs. 9,97,79,730",CIT
+Sushil Jain,Amit Jain/ Sushil Melapchand Jain,,2018-19,No Notice yet,"Rs. 37,78,499",CIT
+Sushil Jain,Amit Jain/ Sushil Melapchand Jain,,2019-20,No Notice yet,"Rs. 3,26,634",CIT
+Sushil Jain,Amit Jain/ Sushil Melapchand Jain,,2020-21,No Notice yet,"Rs. 2,12,130",CIT
+Sushil Jain,Amit Jain/ Sushil Melapchand Jain,,2021-22,No Notice yet,"Rs. 1,75,71,206",CIT
+Sushil Jain,Amit Jain/ Sushil Melapchand Jain,,2022-23,No Notice yet,"Rs. 4,75,36,237",CIT
+Phoolchand Gowthachand,Phoolchand Gowthachand,,2014-15,ITAT Order revert back to CIT,,CIT
+Phoolchand Gowthachand,Phoolchand Gowthachand,,2013-14,ITAT Order revert back to CIT,,CIT
+Phoolchand Gowthachand ,Phoolchand Gowthachand ,,2017-18,filing pending,"Rs. 3,55,67,019",CIT
+Saravana Global Holdings ,Padam j Challani,,2007- 08,cit order passed,"Rs. 26,11,812/-",CIT
+Saravana Global Energy,,,2013- 14,ws filed,Rs. 0/-,CIT
+Saravana Global Energy,,,2015- 16,no ws,Rs. 0/-,CIT
+Padam j Challani,,,2013- 14,No Notice yet,"Rs.  4,32,722/-",CIT
+Veeramchand Sripal ,Veeramchand Sripal ,,2015- 16,No Notice yet,"Rs. 2,01,059",CIT
+Veeramchand Sripal ,Veeramchand Sripal ,,2016- 17,No Notice yet,"Rs. 10,609",CIT
+Veeramchand Sripal ,Veeramchand Sripal ,,2017- 18,No Notice yet,"Rs. 22,263",CIT
+Veeramchand Sripal ,Veeramchand Sripal ,,2018- 19,No Notice yet,"Rs. 29,237",CIT
+Veeramchand Sripal ,Veeramchand Sripal ,,2019- 20,No Notice yet,"Rs. 21,04,982",CIT
+Veeramchand Sripal ,Veeramchand Sripal ,,2020- 21,No Notice yet,"Rs. 64,93,131",CIT
+Veeramchand Sripal ,Veeramchand Sripal ,,2021- 22,No Notice yet,"Rs. 11,86,791",CIT
+Roopchand ,Roopchand ,,2018- 19,,"Rs. 1,27,00,516",CIT

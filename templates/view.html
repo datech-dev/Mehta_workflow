@@ -243,20 +243,123 @@
     </header>
     <main>
         <!-- Task Details -->
-        <section class="task-card">
-            <div class="task-header">
-                <h2>Task Details</h2>
+
+    <!-- Task Details (Read-Only Mode) -->
+<!-- Include Bootstrap CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" />
+
+<section class="task-card">
+    <div class="task-header">
+        <h2>Task Details</h2>
+    </div>
+    <div class="task-content" id="taskDetails">
+        <p><strong>Task ID:</strong> {{ task['id'] }}</p>
+        <p><strong>Task Name:</strong> {{ task['name'] }}</p>
+        <p><strong>Description:</strong> {{ task['description'] }}</p>
+        <p><strong>Assigned To:</strong> {{ task['assigned_to'] or 'Unassigned' }}</p>
+        <p><strong>Client Name:</strong> {{ task['client_name'] or 'Unassigned' }}</p>
+        <p><strong>Stage:</strong> {{ task['stage'] }}</p>
+        <p><strong>Deadline:</strong> {{ task['deadline'] }}</p>
+        
+        {% if user_role == 'Admin' %}
+            <button id="editButton" class="btn btn-primary" onclick="toggleEdit()">Edit</button>
+        {% endif %}
+    </div>
+
+    <!-- Edit Form (Initially Hidden) -->
+    <div class="task-content" id="editForm" style="display: none;">
+        <form method="POST" class="container mt-3">
+            <div class="row mb-3">
+                <label for="name" class="col-sm-3 col-form-label"><strong>Task Name:</strong></label>
+                <div class="col-sm-9">
+                    <input type="text" id="name" name="name" class="form-control" value="{{ task['name'] }}" required>
+                </div>
             </div>
-            <div class="task-content">
-                <p><strong>Task Name:</strong> {{ task['name'] }}</p>
-                <p><strong>Description:</strong> {{ task['description'] }}</p>
-                <p><strong>Created By:</strong> {{ task['created_by'] }}</p>
-                <p><strong>Assigned To:</strong> {{ task['assigned_to'] or 'Unassigned' }}</p>
-                <p><strong>Client Name:</strong> {{ task['client_name'] or 'Unassigned' }}</p>
-                <p><strong>Stage:</strong> {{ task['stage'] }}</p>
-                <p><strong>Deadline:</strong> {{ task['deadline'] }}</p>
+
+            <div class="row mb-3">
+                <label for="description" class="col-sm-3 col-form-label"><strong>Description:</strong></label>
+                <div class="col-sm-9">
+                    <textarea id="description" name="description" class="form-control" rows="3">{{ task['description'] }}</textarea>
+                </div>
             </div>
-        </section>
+
+            <div class="row mb-3">
+                <label for="assignedTo" class="col-sm-3 col-form-label"><strong>Assigned To:</strong></label>
+                <div class="col-sm-9">
+                    <select id="assignedTo" name="assigned_to" class="form-control select2" required>
+                        <option value="">Select a User</option>
+                        {% for user in users %}
+                        {% if user['role'] == 'Employee' %}
+                        <option value="{{ user['username'] }}" {% if task['assigned_to'] == user['username'] %}selected{% endif %}>
+                            {{ user['username'] }}
+                        </option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <label for="Clientname" class="col-sm-3 col-form-label"><strong>Client Name:</strong></label>
+                <div class="col-sm-9">
+                    <select id="Clientname" name="client_name" class="form-control select2" required>
+                        <option value="">Select a Client</option>
+                        {% for client in clients %}
+                        <option value="{{ client['Client_Name'] }}" {% if task['client_name'] == client['Client_Name'] %}selected{% endif %}>
+                            {{ client['Client_Name'] }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <label for="deadline" class="col-sm-3 col-form-label"><strong>Deadline:</strong></label>
+                <div class="col-sm-9">
+                    <input type="date" id="deadline" name="deadline" class="form-control" value="{{ task['deadline'] or '' }}">
+                </div>
+            </div>
+
+            <div class="text-end">
+                <button type="submit" class="btn btn-success">Save Changes</button>
+                <button type="button" class="btn btn-secondary" onclick="toggleEdit()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- Include jQuery and Select2 -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+<!-- Initialize Select2 -->
+<script>
+    $(document).ready(function() {
+        $('.select2').select2({
+            placeholder: "Search...",
+            allowClear: true,
+            width: '100%' // Ensures full-width dropdown
+        });
+    });
+
+    function toggleEdit() {
+        let detailsDiv = document.getElementById('taskDetails');
+        let editFormDiv = document.getElementById('editForm');
+        let editButton = document.getElementById('editButton');
+
+        if (editFormDiv.style.display === 'none') {
+            editFormDiv.style.display = 'block';
+            detailsDiv.style.display = 'none';
+        } else {
+            editFormDiv.style.display = 'none';
+            detailsDiv.style.display = 'block';
+        }
+    }
+</script>
+
+
+
         
         
         
@@ -346,6 +449,37 @@
                 </tbody>
             </table>
         </section>
+
+
+        <!-- Task Edit History -->
+<section class="card">
+    <h3>Task Edit History</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Edited By</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if task['task_edit_history'] %}
+                {% for edit in task['task_edit_history'] %}
+                    <tr>
+                        <td>{{ edit['timestamp'] }}</td>
+                        <td>{{ edit['edited_by'] }}</td>
+                        <td>{{ edit['remarks'] }}</td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="3" style="text-align: center;">No edits have been made yet.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</section>
+
 
         <!-- Back Button -->
         <section class="back-btn">
